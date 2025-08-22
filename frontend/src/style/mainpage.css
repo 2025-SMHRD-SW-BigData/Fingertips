@@ -1,0 +1,21 @@
+.Mainpage_box{
+
+    width:1600px;
+    height:1100px;
+    background-color:#939DA6;
+    border-radius:10px;
+    display: flex;           
+    justify-content: center;  
+    align-items: center;       
+}
+
+.Mainpage_whitebox{
+    width:1550px;
+        height:1050px;
+        background-color:white;
+        border-radius:50px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+}
