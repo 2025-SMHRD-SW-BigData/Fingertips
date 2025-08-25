@@ -4,10 +4,10 @@ import Login from './pages/Login';
 import MainPage from './component/Mainpage';
 import AdminSignup from './pages/AdminSignup';
 
-function ProtectedRoute({ children }) {
-  const token = localStorage.getItem('token');
-  return token ? children : <Navigate to="/login" replace />;
-}
+// function ProtectedRoute({ children }) {
+//   const token = localStorage.getItem('token');
+//   return token ? children : <Navigate to="/login" replace />;
+// }
 
 export default function App() {
   return (
@@ -20,9 +20,9 @@ export default function App() {
       <Route
         path="/mainpage"
         element={
-          <ProtectedRoute>
+          // <ProtectedRoute>
             <MainPage />
-          </ProtectedRoute>
+          // </ProtectedRoute>
         }
       />
       
