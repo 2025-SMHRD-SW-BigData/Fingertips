@@ -1,4 +1,4 @@
-const { pool } = require('../db');
+const pool = require('../config/database');
 
 async function findAdminById(adminId) {
   const [rows] = await pool.query(

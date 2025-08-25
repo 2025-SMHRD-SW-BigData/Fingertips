@@ -1,86 +1,23 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { argon2id } from 'hash-wasm';
+import { useNavigate, Link } from 'react-router-dom';
 
-export default function Login() {
-  const navigate = useNavigate();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setPending(true);
-    setError('');
-    try {
-      const result = await loginApi({ username, password });
-      const token = result?.token || result?.access_token || result?.accessToken || result?.jwt || result?.data?.token;
-      if (token) {
-        localStorage.setItem('token', token);
-      } else {
-        // 서버가 토큰 대신 쿠키 세션만 설정한 경우 등, 성공 응답이면 가드 통과용 마커 저장
-        localStorage.setItem('token', 'session');
-      }
-      navigate('/mainpage', { replace: true });
-    } catch (err) {
-      console.error('Login error:', err);
-      const message = err?.message || '로그인 실패. 다시 시도하세요.';
-      setError(message);
-    } finally {
-      setPending(false);
-    }
-  };
-
-  return (
-    <div className="login-page">
-      <h1>Login</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <input
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Username"
-            autoComplete="username"
-          />
-        </div>
-        <div>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            autoComplete="current-password"
-          />
-        </div>
-        <button type="submit" disabled={pending}>
-          {pending ? 'Logging in…' : 'Login'}
-        </button>
-      </form>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-    </div>
-  );
-}
-
-function joinUrl(base, path) {
-  const b = base?.endsWith('/') ? base.slice(0, -1) : base || '';
-  const p = path?.startsWith('/') ? path : `/${path || ''}`;
-  return `${b}${p}`;
-}
-
-async function tryFetch(url, body, useCredentials) {
-  const res = await fetch(url, {
+// 로그인 API 호출 함수
+async function loginApi({ username, password }) {
+  const res = await fetch('/api/login', { // 실제 API 엔드포인트에 맞게 수정하세요.
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-    credentials: useCredentials ? 'include' : 'same-origin',
+    body: JSON.stringify({ username, password }),
   });
+
   if (!res.ok) {
-    let detail = `HTTP ${res.status}`;
+    let detail = `HTTP Error: ${res.status}`;
     try {
       const data = await res.json();
+      // 서버에서 오는 에러 메시지를 사용 (e.g., data.message)
       detail = data?.message || data?.error || detail;
-    } catch (_) {}
+    } catch (e) {
+      // JSON 파싱 실패 시
+    }
     const err = new Error(detail);
     err.status = res.status;
     throw err;
@@ -88,28 +25,85 @@ async function tryFetch(url, body, useCredentials) {
   return res.json();
 }
 
-async function loginApi({ username, password }) {
-  // Argon2 pre-hash on the client to satisfy backend requirements
-  const iterations = Number(import.meta.env.VITE_ARGON2_ITER || 3);
-  const memoryKB = Number(import.meta.env.VITE_ARGON2_MEM_KB || 1024);
-  const hashLength = Number(import.meta.env.VITE_ARGON2_HASH_LEN || 32);
-  const saltSource = import.meta.env.VITE_PWD_SALT_SOURCE || 'username'; // 'username' | 'static'
-  const staticSalt = import.meta.env.VITE_PWD_SALT_STATIC || '';
-  const salt = (saltSource === 'static' ? staticSalt : username) || '';
-  const pwdPreHash = await argon2id({
-    password,
-    salt,
-    parallelism: 1,
-    iterations,
-    memorySize: memoryKB,
-    hashLength,
-    outputType: 'hex', // change to 'base64' if backend expects base64
+
+export default function Login() {
+  const navigate = useNavigate();
+  const [form, setForm] = useState({
+    username: '',
+    password: '',
   });
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState('');
 
-  const API_BASE = import.meta.env.VITE_API_BASE ?? '/api';
-  const LOGIN_PATH = import.meta.env.VITE_LOGIN_PATH ?? '/login';
-  const USE_CRED = (import.meta.env.VITE_USE_CREDENTIALS ?? '0') === '1';
+  const onChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
 
-  const url = joinUrl(API_BASE, LOGIN_PATH); // e.g., /api/login
-  return tryFetch(url, { username, pwdPreHash }, USE_CRED);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.username || !form.password) {
+      setError('아이디와 비밀번호를 모두 입력해주세요.');
+      return;
+    }
+    setPending(true);
+    setError('');
+    try {
+      const result = await loginApi(form);
+      // 서버 응답에서 토큰을 추출합니다. 응답 형태에 맞게 키를 조정해야 할 수 있습니다.
+      const token = result?.token || result?.access_token || result?.accessToken || result?.jwt || result?.data?.token;
+      
+      if (token) {
+        localStorage.setItem('token', token);
+      } else {
+        // 토큰이 없는 성공 응답(세션 기반 인증 등)의 경우, 로그인 상태 마커를 저장합니다.
+        localStorage.setItem('token', 'session');
+      }
+      // 로그인 성공 후 메인 페이지로 이동합니다.
+      navigate('/mainpage', { replace: true });
+    } catch (err) {
+      console.error('Login error:', err);
+      setError(err.message || '로그인에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <div className="card">
+      <h1>로그인</h1>
+      <form onSubmit={handleSubmit} noValidate>
+        <div className="field">
+          <label>아이디</label>
+          <input
+            name="username"
+            value={form.username}
+            onChange={onChange}
+            placeholder="아이디"
+            autoComplete="username"
+            required
+          />
+        </div>
+        <div className="field">
+          <label>비밀번호</label>
+          <input
+            type="password"
+            name="password"
+            value={form.password}
+            onChange={onChange}
+            placeholder="비밀번호"
+            autoComplete="current-password"
+            required
+          />
+        </div>
+        {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+        <button className="primary" type="submit" disabled={pending}>
+          {pending ? '로그인 중...' : '로그인'}
+        </button>
+      </form>
+      <div style={{ marginTop: '1rem', textAlign: 'center' }}>
+        <Link to="/admin/signup">관리자 회원가입</Link>
+      </div>
+    </div>
+  );
 }
