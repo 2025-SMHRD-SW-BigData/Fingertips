@@ -4,6 +4,7 @@ import Sidebar from './Sidebar'
 import MainpageTop from './MainpageTop'
 import StatisticsBox from './StatisticsBox'
 import Logo from './Logo'
+import MainpageMap from './MainpageMap'
 
 const Mainpage = () => {
   return (
@@ -14,6 +15,7 @@ const Mainpage = () => {
         <Sidebar />
         <div className="main-content">
           <StatisticsBox />
+          <MainpageMap></MainpageMap>
         </div>
       </div>
     </div>
