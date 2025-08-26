@@ -1,5 +1,5 @@
 import React from 'react'
-
+import '../style/mainpage.css'
 const StatisticsBox = () => {
   return (
     <div className="stats-container">

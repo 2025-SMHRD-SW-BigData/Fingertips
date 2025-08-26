@@ -1,5 +1,5 @@
 import React from 'react'
-
+import '../style/mainpage.css'
 const Sidebar = () => {
   return (
     <div className='Sidebar_box'>
