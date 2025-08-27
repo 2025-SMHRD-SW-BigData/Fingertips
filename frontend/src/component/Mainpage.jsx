@@ -5,6 +5,8 @@ import MainpageTop from './MainpageTop'
 import StatisticsBox from './StatisticsBox'
 import Logo from './Logo'
 import MainpageMap from './MainpageMap'
+import Mainpage_vio from './Mainpage_vio'
+import Main_inout from './Main_inout'
 
 const Mainpage = () => {
   return (
@@ -16,6 +18,8 @@ const Mainpage = () => {
         <div className="main-content">
           <StatisticsBox />
           <MainpageMap></MainpageMap>
+          <Mainpage_vio />
+          <Main_inout />
         </div>
       </div>
     </div>

@@ -242,3 +242,137 @@
   
   margin: 230px 80px;
 }
+
+/* 메인페이지 위반내역 */
+.vio{
+  width: 650px;
+  height: 270px;
+  background-color: #2B3341;
+  padding: 20px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  position: absolute;
+  box-sizing: border-box;
+  border: 2px solid white;
+  border-radius: 30px;
+  margin: 780px 80px;
+  top: 0;
+}
+
+.vio_box{
+  width: 610px;
+  height: 230px;
+  background-color: #3A4460;
+  border-radius: 30px;
+  /* display: flex; */
+  justify-content: flex-start;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 10px;
+  
+}
+.violations-container {
+  background-color: #2b3445;
+  color: white;
+  padding: 20px;
+  border-radius: 15px;
+  width: 600px;
+  font-family: "Pretendard", sans-serif;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.all-btn {
+  background: #444c5c;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 8px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  table-layout: fixed;
+  word-break: break-word;
+}
+
+.violations-table th {
+  text-align: left;
+  padding: 10px;
+  color: #c9d1d9;
+  font-weight: 500;
+}
+
+.data-table td {
+  padding: 10px;
+  border-top: 1px solid #3b4457;
+}
+
+.status {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.status.대기 {
+  background-color: #a6a648;
+  color: black;
+}
+
+.status.처리중 {
+  background-color: #5a4ca7;
+  color: white;
+}
+
+.status.확인 {
+  background-color: #833c3c;
+  color: white;
+}
+
+.action-btn {
+  background: #444c5c;
+  border: none;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+
+.inout{
+  width: 580px;
+  height: 270px;
+  background-color: #2B3341;
+  padding: 20px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  position: absolute;
+  box-sizing: border-box;
+  border: 2px solid white;
+  border-radius: 30px;
+  margin: 780px 750px;
+  top: 0;
+}
+
+.inout_box{
+  width: 540px;
+  height: 230px;
+  background-color: #3A4460;
+  border-radius: 30px;
+  justify-content: flex-start;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 10px;
+}

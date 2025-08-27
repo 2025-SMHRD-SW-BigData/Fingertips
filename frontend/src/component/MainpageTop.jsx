@@ -8,7 +8,8 @@ const MainpageTop = () => {
     return (
         <div className='Top_box' >  
         <img src={search} alt="검색" style={{
-            width:"20px"
+            width:"20px",
+            filter: 'brightness(0) invert(1)'
         }
         } className='search-icon' />
                 <input
