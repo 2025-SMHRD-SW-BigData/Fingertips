@@ -1,291 +1,225 @@
-/* 화면 전체를 덮는 배경 박스 */
+/* General Body & Layout */
 .Mainpage_box {
-  width: 100vw;
-  height: 100vh;
-  background-color: #939DA6;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  top: 0;
-  left: 0;
-  position: fixed;
+  width: 100%;
+  min-height: 100vh;
+  background-color: #3e4a59; /* Slightly lighter background */
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .page-layout {
-  position: relative;
-  width: 100%;
+  display: grid;
   height: 100%;
+  width: 100%;
+  grid-template-columns: 260px 1fr;
+  grid-template-rows: 120px 180px auto 1fr;
+  grid-template-areas:
+    "logo topbar"
+    "sidebar stats"
+    "sidebar map"
+    "sidebar bottom";
+  gap: 24px;
 }
 
-.main-content {
-  margin-left: 200px;
-  /* Same as sidebar width */
-  padding-top: 100px;
-  /* Same as top bar height */
-  padding-left: 20px;
-  padding-right: 20px;
-}
+/* Grid Area Assignments */
+.Mainpage_logo { grid-area: logo; }
+.Sidebar_box { grid-area: sidebar; }
+.Top_box { grid-area: topbar; }
+.stats-container { grid-area: stats; }
+.mainmap { grid-area: map; }
+.bottom-content { grid-area: bottom; }
 
-
-/* 사이드바 */
-.Sidebar_box {
-  width: 240px;
-  height: 620px;
+/* Base Box Style */
+.box-style {
   background-color: #2B3341;
   color: white;
+  border-radius: 20px;
+  border: 1px solid #4a5568;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   padding: 20px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  position: absolute;
-  left: 0;
-
-  box-sizing: border-box;
-  border: 2px solid white;
-  border-radius: 20px;
-  margin: 150px 30px;
-}
-.side_sbox{
-  background-color: #3A4460;
-  padding: 10px;
-  border-radius: 10px;
-  font-family:Pretendard Variable;
-  font-weight: bold;
 }
 
-/* 로고 */
+/* Logo */
 .Mainpage_logo {
-  width: 240px;
-  height: 110px;
-  background-color: #2B3341;
-  color: white;
-  padding: 20px;
-  display: flex;
-  justify-content: flex-start;
+  /* Inherits .box-style but with custom alignment */
+  justify-content: center;
   align-items: center;
-  position: absolute;
-  left: 0;
-  top: 0;
-  box-sizing: border-box;
-  border: 2px solid white;
-  border-radius: 20px;
-  margin: 30px 30px;
 }
 
 .logo-container {
   display: flex;
   align-items: center;
   gap: 10px;
-  justify-content: flex-start;
-  align-items: center;
-  position: absolute;
-  box-sizing: border-box;
 }
 
-/* 상단바 */
-.serch {
-  width: 600px;
-  height: 40px;
-  padding: 8px 12px;
+/* Sidebar */
+.Sidebar_box {
+  /* Inherits .box-style */
+  gap: 20px;
+}
+
+.side_sbox {
+  background-color: #3A4460;
+  padding: 15px;
   border-radius: 10px;
-  border: none;
+  font-family: 'Pretendard Variable', sans-serif;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+  display: flex; /* Add flexbox */
+  align-items: center; /* Align items vertically */
+}
+
+.side_sbox:hover {
+  background-color: #4a5568;
+}
+
+.notification-badge {
+  background-color: #e53e3e; /* A brighter red */
+  color: white;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Top Bar */
+.Top_box {
+  /* Inherits .box-style */
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.search-container {
+  position: relative;
+  width: 50%;
+}
+
+.serch {
+  width: 100%;
+  height: 40px;
+  padding: 8px 12px 8px 35px; /* Add padding for icon */
+  border-radius: 10px;
+  border: 1px solid #4a5568;
   outline: none;
   font-size: 14px;
   color: #fff;
   background-color: #3b4252;
-  padding-left: 30px;
-}
-
-.Top_box {
-  width: 1250px;
-  height: 110px;
-  background-color: #2B3341;
-  color: white;
-  padding: 20px;
-  display: flex;
-  justify-content: flex-start;
-  /* Align items to the start */
-  align-items: center;
-  /* Vertically center */
-  position: absolute;
-  box-sizing: border-box;
-  border: 2px solid white;
-  border-radius: 20px;
-  margin: 30px 300px;
 }
 
 .search-icon {
   position: absolute;
-  left: 25px;
+  left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   pointer-events: none;
-  /* 클릭 방지 */
 }
 
-.today {
-  width: 150px;
-  height: 40px;
-  background-color: #3b4252;
-  padding: 8px 12px;
-  border-radius: 10px;
-  margin-left: 100px;
-}
-
-.manager {
-  width: 150px;
-  height: 40px;
-  background-color: #3b4252;
-  padding: 8px 12px;
-  border-radius: 10px;
-  margin-left: 20px;
-}
-
-.Noti {
-  width: 40px;
-  height: 40px;
-  background-color: #3b4252;
-  padding: 10px;
-  border-radius: 10px;
-  margin-left: 15px;
-
-}
-
-.login_out {
-  width: 100px;
-  height: 40px;
-  background-color: #3b4252;
-  padding: 10px;
-  border-radius: 10px;
-  margin-left: 15px;
-}
-
-/* 통계분석 */
-.stats-container {
-  width: 1250px;
-  height: 170px;
-  background-color: #2B3341;
-  color: white;
-  padding: 20px;
+.top-bar-widgets {
   display: flex;
-  justify-content: flex-start;
   align-items: center;
-  position: absolute;
-  box-sizing: border-box;
-  border: 2px solid white;
-  border-radius: 20px;
-  margin: 50px 80px;
+  gap: 15px;
+}
+
+.top-bar-widgets > div {
+  background-color: #3b4252;
+  padding: 8px 12px;
+  border-radius: 10px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Stats Section */
+.stats-container {
+  /* Inherits .box-style */
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  gap: 20px;
 }
 
 .stat-box {
   flex: 1;
-  width: 300px;
-  height: 120px;
-  border-radius: 20px;
-  margin: 10px;
-  background-color: #3A4460;
-  display: flex;
-  align-items: center;
-  /* gap: 1px; */
-  color:white;
-
-
-}
-
-.stat-box-blue {
-  padding: 20px;
-  width: 170px;
-  height: 100px;
-  border-radius: 20px;
-  color: white;
-  display: flex;
-  flex-direction: column;   /* 세로로 배치 */
-  justify-content: center;  /* 세로 중앙 */
-  align-items: center;
-  background-color: #2B3341;
-  margin-left: 30px;
-}
-
-.stat-box-green {
-  padding: 20px;
-  width: 170px;
-  height: 100px;
-  border-radius: 20px;
-  color: white;
- display: flex;
-  flex-direction: column;   /* 세로로 배치 */
-  justify-content: center;  /* 세로 중앙 */
-  align-items: center;
-  background-color: #2B3341;
-  margin-left: 30px;
-  /* margin-top: 10px; */
-}
-
-.stat-box-red {
-  padding: 20px;
-  width: 170px;
-  height: 100px;
-  border-radius: 20px;
-  color: white;
-  display: flex;
-  flex-direction: column;   /* 세로로 배치 */
-  justify-content: center;  /* 세로 중앙 */
-  align-items: center;
-  background-color: #2B3341;
-  margin-left: 30px;
-}
-
-/* 메인페이지 맵 */
-.mainmap{
-  
-  margin: 230px 80px;
-}
-
-/* 메인페이지 위반내역 */
-.vio{
-  width: 650px;
-  height: 270px;
-  background-color: #2B3341;
-  padding: 20px;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  position: absolute;
-  box-sizing: border-box;
-  border: 2px solid white;
-  border-radius: 30px;
-  margin: 780px 80px;
-  top: 0;
-}
-
-.vio_box{
-  width: 610px;
-  height: 230px;
-  background-color: #3A4460;
-  border-radius: 30px;
-  /* display: flex; */
-  justify-content: flex-start;
-  align-items: center;
-  box-sizing: border-box;
-  padding: 10px;
-  
-}
-.violations-container {
-  background-color: #2b3445;
-  color: white;
-  padding: 20px;
+  height: 150px; /* Increased height slightly */
   border-radius: 15px;
-  width: 600px;
-  font-family: "Pretendard", sans-serif;
+  background-color: #3A4460;
+  display: flex;
+  flex-direction: row; /* Image on left, text on right */
+  align-items: center;
+  justify-content: center; /* Center the content horizontally */
+  gap: 20px;
+  padding: 20px;
+  color: white;
 }
 
+.stat-box-main {
+  padding: 0; /* Remove padding as gap is handled by flexbox */
+  border-radius: 0;
+  background-color: transparent; /* Make it transparent */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* Map */
+.mainmap {
+  width: 100%;
+  height: 100%;
+  background-color: #3A4460;
+  border-radius: 15px;
+  /* Placeholder for map */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2rem;
+  color: #4a5568;
+}
+
+/* Bottom Content Layout */
+.bottom-content {
+  display: flex;
+  gap: 24px;
+  width: 100%;
+}
+
+.vio, .inout {
+  /* Inherits .box-style */
+  flex: 1;
+}
+
+.vio_box, .inout_box {
+  width: 100%;
+  height: 100%;
+  background-color: #3A4460;
+  border-radius: 15px;
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+/* Shared Table & Header Styles */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
+}
+
+.header h3 {
+  margin: 0;
+  font-size: 1.1rem;
 }
 
 .all-btn {
@@ -295,7 +229,7 @@
   padding: 6px 12px;
   border-radius: 10px;
   cursor: pointer;
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .data-table {
@@ -306,73 +240,39 @@
   word-break: break-word;
 }
 
-.violations-table th {
+.data-table th, .data-table td {
+  padding: 12px 10px;
   text-align: left;
-  padding: 10px;
+}
+
+.data-table th {
   color: #c9d1d9;
   font-weight: 500;
+  border-bottom: 1px solid #4a5568;
 }
 
 .data-table td {
-  padding: 10px;
   border-top: 1px solid #3b4457;
 }
 
 .status {
-  padding: 4px 10px;
+  padding: 5px 12px;
   border-radius: 12px;
   font-size: 13px;
   font-weight: bold;
+  text-align: center;
 }
 
-.status.대기 {
-  background-color: #a6a648;
-  color: black;
-}
-
-.status.처리중 {
-  background-color: #5a4ca7;
-  color: white;
-}
-
-.status.확인 {
-  background-color: #833c3c;
-  color: white;
-}
+.status.대기 { background-color: #a6a648; color: black; }
+.status.처리중 { background-color: #5a4ca7; color: white; }
+.status.확인 { background-color: #833c3c; color: white; }
 
 .action-btn {
   background: #444c5c;
   border: none;
   color: white;
-  padding: 5px 12px;
+  padding: 6px 14px;
   border-radius: 8px;
   cursor: pointer;
-}
-
-
-.inout{
-  width: 580px;
-  height: 270px;
-  background-color: #2B3341;
-  padding: 20px;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  position: absolute;
-  box-sizing: border-box;
-  border: 2px solid white;
-  border-radius: 30px;
-  margin: 780px 750px;
-  top: 0;
-}
-
-.inout_box{
-  width: 540px;
-  height: 230px;
-  background-color: #3A4460;
-  border-radius: 30px;
-  justify-content: flex-start;
-  align-items: center;
-  box-sizing: border-box;
-  padding: 10px;
+  width: 100%;
 }

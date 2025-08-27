@@ -15,12 +15,13 @@ const Mainpage = () => {
         <Logo></Logo>
         <MainpageTop />
         <Sidebar />
-        <div className="main-content">
+        
           <StatisticsBox />
           <MainpageMap></MainpageMap>
-          <Mainpage_vio />
-          <Main_inout />
-        </div>
+          <div className="bottom-content">
+            <Mainpage_vio />
+            <Main_inout />
+          </div>
       </div>
     </div>
   )

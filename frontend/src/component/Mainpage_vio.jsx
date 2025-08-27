@@ -1,5 +1,5 @@
-import React from 'react'
-import "../style/mainpage.css"
+import React from 'react';
+import "../style/mainpage.css";
 
 const data = [
   { id: 1, number: "12가3456", area: "장애인", reason: "불법주차", time: "22:46", status: "대기", action: "전환" },
@@ -9,51 +9,49 @@ const data = [
 
 const Mainpage_vio = () => {
   return (
-    <div className='vio'>
-      <div className='vio_box'>
-        <div className="header">
-          최근 위반
-          <button className="all-btn">전체 보기</button>
-        </div>
-        <table className="data-table">
-          <colgroup>
-            <col style={{width: "120px"}} />
-            <col style={{width: "80px"}} />
-            <col style={{width: "100px"}} />
-            <col style={{width: "80px"}} />
-            <col style={{width: "90px"}} />
-            <col style={{width: "120px"}} />
-          </colgroup>
-          <thead>
-            <tr>
-              <th>차량번호</th>
-              <th>구역</th>
-              <th>사유</th>
-              <th>시각</th>
-              <th>상태</th>
-              <th>작업</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((row) => (
-              <tr key={row.id}>
-                <td>{row.number}</td>
-                <td>{row.area}</td>
-                <td>{row.reason}</td>
-                <td>{row.time}</td>
-                <td>
-                  <span className={`status ${row.status}`}>{row.status}</span>
-                </td>
-                <td>
-                  <button className="action-btn">{row.action}</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className='vio box-style'>
+      <div className="header">
+        <h3>최근 위반</h3>
+        <button className="all-btn">전체 보기</button>
       </div>
+      <table className="data-table">
+        <colgroup>
+          <col style={{width: "25%"}} />
+          <col style={{width: "15%"}} />
+          <col style={{width: "20%"}} />
+          <col style={{width: "15%"}} />
+          <col style={{width: "15%"}} />
+          <col style={{width: "10%"}} />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>차량번호</th>
+            <th>구역</th>
+            <th>사유</th>
+            <th>시각</th>
+            <th>상태</th>
+            <th>작업</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((row) => (
+            <tr key={row.id}>
+              <td>{row.number}</td>
+              <td>{row.area}</td>
+              <td>{row.reason}</td>
+              <td>{row.time}</td>
+              <td>
+                <span className={`status ${row.status}`}>{row.status}</span>
+              </td>
+              <td>
+                <button className="action-btn">보기</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
-  )
-}
+  );
+};
 
-export default Mainpage_vio
+export default Mainpage_vio;
