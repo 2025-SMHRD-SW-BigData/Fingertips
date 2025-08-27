@@ -1,9 +1,26 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../style/mainpage.css';
 import search from '../assets/search.png';
 import bell from '../assets/bell.png';
 
 const MainpageTop = () => {
+  const navigate = useNavigate();
+  const adminName = localStorage.getItem('adminName') || localStorage.getItem('admin_id') || '관리자';
+  const today = new Date().toISOString().slice(0, 10);
+
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem('token');
+      localStorage.removeItem('adminName');
+      localStorage.removeItem('admin_id');
+      localStorage.removeItem('role');
+    } catch (e) {
+      // ignore storage errors
+    }
+    navigate('/login', { replace: true });
+  };
+
   return (
     <div className='Top_box box-style'>
       <div className="search-container">
@@ -16,16 +33,16 @@ const MainpageTop = () => {
       </div>
       <div className="top-bar-widgets">
         <div className='today'>
-          2025-08-26
+          {today}
         </div>
         <div className='manager'>
-          관리자: 핑거팁스
+          관리자: {adminName}
         </div>
         <div className='Noti'>
           <img src={bell} alt="알림" style={{ width: "20px" }} />
         </div>
         <div className='login_out'>
-          로그아웃
+          <button onClick={handleLogout} className='logout-btn'>로그아웃</button>
         </div>
       </div>
     </div>
@@ -33,3 +50,4 @@ const MainpageTop = () => {
 };
 
 export default MainpageTop;
+

@@ -1,20 +1,17 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react';
+import { register as registerApi } from '../services/api';
 
 const phoneFormat = (v) => {
-  // keep digits only
-  const digits = (v || '').replace(/\D/g, '')
-  // enforce starting with 010
-  if (!digits.startsWith('010')) {
-    return '010-'
-  }
-  const a = '010'
-  const mid = digits.slice(3, 7)
-  const tail = digits.slice(7, 11)
-  if (mid.length === 0) return '010-'
-  if (mid.length < 4) return `010-${mid}`
-  if (tail.length === 0) return `010-${mid}-`
-  return `010-${mid}-${tail}`.slice(0, 13)
-}
+  const digits = (v || '').replace(/\D/g, '');
+  if (!digits.startsWith('010')) return '010-';
+  const a = '010';
+  const mid = digits.slice(3, 7);
+  const tail = digits.slice(7, 11);
+  if (mid.length === 0) return '010-';
+  if (mid.length < 4) return `010-${mid}`;
+  if (tail.length === 0) return `010-${mid}-`;
+  return `010-${mid}-${tail}`.slice(0, 13);
+};
 
 export default function AdminSignup() {
   const [form, setForm] = useState({
@@ -24,9 +21,9 @@ export default function AdminSignup() {
     name: '',
     phone: '010-',
     email: '',
-  })
-  const [errors, setErrors] = useState({})
-  const [submitting, setSubmitting] = useState(false)
+  });
+  const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
 
   const canSubmit = useMemo(() => {
     return (
@@ -35,38 +32,38 @@ export default function AdminSignup() {
       form.password === form.password_confirm &&
       /^010-\d{4}-\d{4}$/.test(form.phone) &&
       /[^@\s]+@[^@\s]+\.[^@\s]+/.test(form.email)
-    )
-  }, [form])
+    );
+  }, [form]);
 
   const onChange = (e) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     if (name === 'phone') {
-      setForm((f) => ({ ...f, phone: phoneFormat(value) }))
-      return
+      setForm((f) => ({ ...f, phone: phoneFormat(value) }));
+      return;
     }
     if (name === 'email') {
-      setForm((f) => ({ ...f, email: value.toLowerCase() }))
-      return
+      setForm((f) => ({ ...f, email: value.toLowerCase() }));
+      return;
     }
-    setForm((f) => ({ ...f, [name]: value }))
-  }
+    setForm((f) => ({ ...f, [name]: value }));
+  };
 
   const validate = () => {
-    const next = {}
-    if (!form.admin_id || form.admin_id.length < 4) next.admin_id = '아이디는 4자 이상이어야 합니다.'
-    if (!form.password || form.password.length < 8) next.password = '비밀번호는 8자 이상이어야 합니다.'
-    if (form.password !== form.password_confirm) next.password_confirm = '비밀번호가 일치하지 않습니다.'
-    if (!/^010-\d{4}-\d{4}$/.test(form.phone)) next.phone = '전화번호는 010-####-#### 형식이어야 합니다.'
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) next.email = '유효한 이메일 주소가 아닙니다.'
-    if (!form.name) next.name = '이름은 필수입니다.'
-    setErrors(next)
-    return Object.keys(next).length === 0
-  }
+    const next = {};
+    if (!form.admin_id || form.admin_id.length < 4) next.admin_id = '아이디는 4자 이상이어야 합니다';
+    if (!form.password || form.password.length < 8) next.password = '비밀번호는 8자 이상이어야 합니다';
+    if (form.password !== form.password_confirm) next.password_confirm = '비밀번호가 일치하지 않습니다';
+    if (!/^010-\d{4}-\d{4}$/.test(form.phone)) next.phone = '전화번호는 010-####-#### 형식이어야 합니다';
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) next.email = '유효한 이메일 주소가 아닙니다';
+    if (!form.name) next.name = '이름은 필수입니다';
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
 
   const onSubmit = async (e) => {
-    e.preventDefault()
-    if (!validate()) return
-    setSubmitting(true)
+    e.preventDefault();
+    if (!validate()) return;
+    setSubmitting(true);
     try {
       const payload = {
         admin_id: form.admin_id.trim(),
@@ -74,34 +71,17 @@ export default function AdminSignup() {
         name: form.name.trim(),
         phone: form.phone,
         email: form.email.trim().toLowerCase(),
-        // role omitted; server defaults to 'admin'
-      }
-      const res = await fetch('/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      if (res.status === 201) {
-        alert('회원가입에 성공하였습니다')
-        window.location.assign('/login')
-        return
-      }
-      const data = await res.json().catch(() => ({}))
-      if (res.status === 409) {
-        alert(data?.message || '이미 등록된 정보가 있습니다.')
-      } else if (res.status === 400) {
-        alert('입력값을 확인해주세요.')
-      } else {
-        console.log()
-        alert('서버 오류가 발생했습니다.')
-      }
+      };
+      await registerApi(payload);
+      alert('회원가입에 성공했습니다. 로그인 페이지로 이동합니다.');
+      window.location.assign('/login');
     } catch (err) {
-      console.log()
-      alert('네트워크 오류가 발생했습니다.')
+      const msg = err?.message || '서버 오류가 발생했습니다.';
+      alert(msg);
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className="card">
@@ -138,10 +118,10 @@ export default function AdminSignup() {
           {errors.email && <span className="error">{errors.email}</span>}
         </div>
         <button className="primary" type="submit" disabled={!canSubmit || submitting}>
-          {submitting ? '처리 중...' : '회원가입'}
+          {submitting ? '처리 중…' : '회원가입'}
         </button>
       </form>
     </div>
-  )
+  );
 }
 

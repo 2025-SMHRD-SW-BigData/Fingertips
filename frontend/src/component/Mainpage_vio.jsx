@@ -1,13 +1,32 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import "../style/mainpage.css";
+import { getRecentViolations } from '../services/api';
 
-const data = [
-  { id: 1, number: "12가3456", area: "장애인", reason: "불법주차", time: "22:46", status: "대기", action: "전환" },
-  { id: 2, number: "34나5678", area: "장애인", reason: "불법주차", time: "18:46", status: "처리중", action: "전송" },
-  { id: 3, number: "89다0123", area: "장애인", reason: "주차방해", time: "12:46", status: "확인", action: "보기" },
-];
+const formatTime = (iso) => {
+  if (!iso) return '-';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } catch {
+    return '-';
+  }
+};
 
 const Mainpage_vio = () => {
+  const [rows, setRows] = useState([]);
+
+  useEffect(() => {
+    let mounted = true;
+    getRecentViolations()
+      .then((data) => {
+        if (mounted) setRows(Array.isArray(data) ? data : []);
+      })
+      .catch((err) => console.error('Failed to load recent violations', err));
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <div className='vio box-style'>
       <div className="header">
@@ -34,20 +53,25 @@ const Mainpage_vio = () => {
           </tr>
         </thead>
         <tbody>
-          {data.map((row) => (
-            <tr key={row.id}>
-              <td>{row.number}</td>
-              <td>{row.area}</td>
-              <td>{row.reason}</td>
-              <td>{row.time}</td>
+          {rows.map((row) => (
+            <tr key={row.violation_idx}>
+              <td>{row.ve_number}</td>
+              <td>{row.parking_loc}</td>
+              <td>{row.violation_type}</td>
+              <td>{formatTime(row.violation_date)}</td>
               <td>
-                <span className={`status ${row.status}`}>{row.status}</span>
+                <span className={`status ${row.admin_status || '미처리'}`}>{row.admin_status || '미처리'}</span>
               </td>
               <td>
                 <button className="action-btn">보기</button>
               </td>
             </tr>
           ))}
+          {rows.length === 0 && (
+            <tr>
+              <td colSpan={6} style={{ textAlign: 'center', color: '#ccc' }}>표시할 데이터가 없습니다</td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>
@@ -55,3 +79,4 @@ const Mainpage_vio = () => {
 };
 
 export default Mainpage_vio;
+

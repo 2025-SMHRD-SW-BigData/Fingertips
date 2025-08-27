@@ -1,13 +1,32 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import "../style/mainpage.css";
+import { getParkingLogs } from '../services/api';
 
-const data = [
-  { id: 1, number: "12가3456", area: "일반", in: "20:46", out: "-", action: "입차" },
-  { id: 2, number: "34나5678", area: "일반", in: "-", out: "18:46", action: "출차" },
-  { id: 3, number: "89다0123", area: "일반", in: "12:46", out: "-", action: "보기" },
-];
+const formatTime = (iso) => {
+  if (!iso) return '-';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } catch {
+    return '-';
+  }
+};
 
 const Main_inout = () => {
+  const [rows, setRows] = useState([]);
+
+  useEffect(() => {
+    let mounted = true;
+    getParkingLogs()
+      .then((data) => {
+        if (mounted) setRows(Array.isArray(data) ? data : []);
+      })
+      .catch((err) => console.error('Failed to load parking logs', err));
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <div className='inout box-style'>
       <div className="header">
@@ -32,17 +51,22 @@ const Main_inout = () => {
           </tr>
         </thead>
         <tbody>
-          {data.map((row) => (
-            <tr key={row.id}>
-              <td>{row.number}</td>
-              <td>{row.area}</td>
-              <td>{row.in}</td>
-              <td>{row.out}</td>
+          {rows.map((row) => (
+            <tr key={row.log_idx}>
+              <td>{row.ve_number}</td>
+              <td>{row.space_id}</td>
+              <td>{formatTime(row.entry_at)}</td>
+              <td>{formatTime(row.exit_at)}</td>
               <td>
-                <button className="action-btn">{row.action}</button>
+                <button className="action-btn">보기</button>
               </td>
             </tr>
           ))}
+          {rows.length === 0 && (
+            <tr>
+              <td colSpan={5} style={{ textAlign: 'center', color: '#ccc' }}>표시할 데이터가 없습니다</td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>
@@ -50,3 +74,4 @@ const Main_inout = () => {
 };
 
 export default Main_inout;
+
