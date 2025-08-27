@@ -1,0 +1,133 @@
+/* ===========================
+   CCTV 메인 컨테이너
+=========================== */
+.cctv-management-container {
+    padding: 20px;
+    background: #2B3341;
+    /* 메인페이지 톤 */
+    border-radius: 20px;
+    border: 2px solid white;
+    color: white;
+    margin-top: 20px;
+    /* 상단바와 간격 */
+    box-sizing: border-box;
+    height: 610px;
+}
+
+/* 제목 */
+.cctv-management-container h2 {
+    color: white;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+}
+
+/* ===========================
+   CCTV 그리드
+=========================== */
+.cctv-grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+/* CCTV 카드 */
+.cctv-feed-item {
+    background-color: #3A4460;
+    border: 1px solid #4a5568;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.cctv-feed-item:hover {
+    transform: scale(1.02);
+}
+
+/* 비디오 */
+.cctv-feed-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background-color: #000;
+    border-radius: 12px;
+}
+
+/* 영상 타이틀 */
+.video-title {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+    margin: 0;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+/* ===========================
+   모달 스타일
+=========================== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    /* 메인페이지보다 위 */
+}
+
+.main-content {
+    padding: 20px;
+    width: 1290px;
+    margin-left: 200px;
+    /* Same as sidebar width */
+    padding-top: 100px;
+    /* Same as top bar height */
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.modal-video {
+    width: 100%;
+    max-height: 80vh;
+    border-radius: 4px;
+    display: block;
+}
+
+.modal-close {
+    position: absolute;
+    top: -25px;
+    right: -10px;
+    color: #fff;
+    font-size: 35px;
+    font-weight: bold;
+    cursor: pointer;
+    background: none;
+    border: none;
+    line-height: 1;
+}
+
+
+.cctv-main-content {
+    width: 1290px;
+    margin-left: 280px;
+    /* Sidebar 넓이 (240px 기준) */
+    padding: 140px 20px 20px 20px;
+    /* Topbar 110px + 여유 30px */
+    overflow-y: auto;
+    /* 내부 스크롤 */
+    height: calc(100vh - 140px);
+    /* Topbar 제외한 높이 */
+    box-sizing: border-box;
+}

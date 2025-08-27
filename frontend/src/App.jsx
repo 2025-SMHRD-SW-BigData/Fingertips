@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import MainPage from './component/Mainpage';
 import AdminSignup from './pages/AdminSignup';
+import CCTVpage from './component/CCTVpage';
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem('token');
@@ -16,6 +17,8 @@ export default function App() {
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<Login />} />
       <Route path="/admin/signup" element={<AdminSignup />} />
+      <Route path="/cctv" element={<CCTVpage />} />
+
       {/* 로그인 성공 후 접근할 메인 페이지 (보호 라우트) */}
       <Route
         path="/mainpage"
