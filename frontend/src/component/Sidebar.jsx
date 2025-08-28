@@ -55,10 +55,10 @@ const Sidebar = () => {
     </Link>
       <Link to="/notifications" style={{ textDecoration: 'none', color: 'inherit' }}><SidebarItem icon={checklist} text="알림 내역" count={7} /></Link>
 
-      <SidebarItem icon={vidio} text="영상 정보" />
-      <SidebarItem icon={graf} text="통계 분석" />
-      <SidebarItem icon={mypage} text="마이 페이지" />
-      <SidebarItem icon={setting} text="설정" />
+      <Link to="/cctv" style={{ textDecoration: 'none', color: 'inherit' }}><SidebarItem icon={vidio} text="영상 정보" /></Link>
+      <Link to="/statistics" style={{ textDecoration: 'none', color: 'inherit' }}><SidebarItem icon={graf} text="통계 분석" /></Link>
+      <Link to="/mypage" style={{ textDecoration: 'none', color: 'inherit' }}><SidebarItem icon={mypage} text="마이 페이지" /></Link>
+      <Link to="/settings" style={{ textDecoration: 'none', color: 'inherit' }}><SidebarItem icon={setting} text="설정" /></Link>
     </div>
   );
 };

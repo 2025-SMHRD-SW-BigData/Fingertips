@@ -21,6 +21,18 @@
   gap: 24px;
 }
 
+.page-layout-simple {
+  display: grid;
+  height: 100%;
+  width: 100%;
+  grid-template-columns: 260px 1fr;
+  grid-template-rows: 120px 1fr;
+  grid-template-areas:
+    "logo topbar"
+    "sidebar content";
+  gap: 24px;
+}
+
 /* Grid Area Assignments */
 .Mainpage_logo { grid-area: logo; }
 .Sidebar_box { grid-area: sidebar; }
@@ -28,6 +40,22 @@
 .stats-container { grid-area: stats; }
 .mainmap { grid-area: map; }
 .bottom-content { grid-area: bottom; }
+.content-area {
+  grid-area: content;
+  background-color: #2B3341;
+  max-height: 2000px;
+  color: white;
+  border-radius: 20px;
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; 
+}
+
+.content-area h1 {
+  margin-bottom: 20px;
+}
 
 /* Base Box Style */
 .box-style {
@@ -139,39 +167,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-/* Logout Button */
-.login_out {
-  padding: 0; /* allow the button to fill the chip */
-}
-
-.logout-btn {
-  background: transparent;
-  color: #fff;
-  border: none;
-  height: 100%;
-  width: 100%;
-  padding: 0 14px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.2px;
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-.logout-btn:hover {
-  background-color: #4a5568;
-}
-
-.logout-btn:active {
-  background-color: #515c6f;
-}
-
-.logout-btn:focus-visible {
-  outline: 2px solid #63B3ED;
-  outline-offset: 2px;
 }
 
 /* Stats Section */
@@ -310,25 +305,7 @@
   width: 100%;
 }
 
-/* Violation Page Specific Styles */
-.content-area {
-  grid-area: map; /* This might need adjustment based on desired layout */
-  background-color: #2B3341;
-  max-height: 2000px;
-  color: white;
-  border-radius: 20px;
-  padding: 20px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto; 
-}
-
-.content-area h1 {
-  margin-bottom: 20px;
-}
-
-.violation-list table {
+.violation-list table, .notification-list table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
@@ -336,41 +313,17 @@
   word-break: break-word;
 }
 
-.violation-list th, .violation-list td {
+.violation-list th, .violation-list td, .notification-list th, .notification-list td {
   padding: 12px 10px;
   text-align: left;
   border-bottom: 1px solid #4a5568;
 }
 
-.violation-list th {
+.violation-list th, .notification-list th {
   color: #c9d1d9;
   font-weight: 500;
 }
 
-.violation-list tr:last-child td {
-  border-bottom: none;
-}
-
-/* Notification Page Specific Styles */
-.notification-list table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-  table-layout: fixed;
-  word-break: break-word;
-}
-
-.notification-list th, .notification-list td {
-  padding: 12px 10px;
-  text-align: left;
-  border-bottom: 1px solid #4a5568;
-}
-
-.notification-list th {
-  color: #c9d1d9;
-  font-weight: 500;
-}
-
-.notification-list tr:last-child td {
+.violation-list tr:last-child td, .notification-list tr:last-child td {
   border-bottom: none;
 }

@@ -1,0 +1,61 @@
+/* MyPage.css */
+.mypage-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.profile-section,
+.password-section,
+.activity-section {
+  background-color: #3a4460;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.profile-section h2,
+.password-section h2,
+.activity-section h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.password-section form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.password-section input {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #4a5568;
+  background-color: #2b3341;
+  color: white;
+}
+
+.password-section button {
+  padding: 10px;
+  border-radius: 5px;
+  border: none;
+  background-color: #4a5568;
+  color: white;
+  cursor: pointer;
+}
+
+.activity-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.activity-section li {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #4a5568;
+}
+
+.activity-section li:last-child {
+  border-bottom: none;
+}

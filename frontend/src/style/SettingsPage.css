@@ -1,0 +1,58 @@
+/* SettingsPage.css */
+.settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.settings-section {
+  background-color: #3a4460;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.settings-section h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.settings-section label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.settings-section input[type="text"],
+.settings-section input[type="file"] {
+  margin-left: 10px;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #4a5568;
+  background-color: #2b3341;
+  color: white;
+}
+
+.settings-section table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.settings-section th,
+.settings-section td {
+  padding: 10px;
+  border-bottom: 1px solid #4a5568;
+  text-align: left;
+}
+
+.settings-section th {
+  color: #c9d1d9;
+}
+
+.settings-section button {
+  margin-right: 5px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  border: none;
+  background-color: #4a5568;
+  color: white;
+  cursor: pointer;
+}

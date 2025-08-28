@@ -1,0 +1,75 @@
+/* StatisticsPage.css */
+.statistics-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.filters {
+  display: flex;
+  gap: 10px;
+}
+
+.filters input,
+.filters select {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #4a5568;
+  background-color: #2b3341;
+  color: white;
+}
+
+.charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.chart {
+  background-color: #3a4460;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.chart h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.bar-chart {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  height: 200px;
+  border-left: 2px solid #4a5568;
+  border-bottom: 2px solid #4a5568;
+  padding: 10px;
+}
+
+.bar {
+  background-color: #4a5568;
+  width: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  color: white;
+  position: relative;
+}
+
+.bar span {
+  position: absolute;
+  bottom: -25px;
+  width: 100px;
+  text-align: center;
+}
+
+.pie-chart {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background-image: conic-gradient(
+    #e53e3e 0 40%,
+    #4a5568 40% 70%,
+    #38a169 70% 100%
+  );
+}

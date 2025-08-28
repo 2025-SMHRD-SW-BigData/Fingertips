@@ -28,7 +28,7 @@ const CCTVManagement = () => {
 
     return (
         <div className="cctv-management-container">
-            <h2>CCTV 실시간 영상</h2>
+            <h1>CCTV 실시간 영상</h1>
             <div className="cctv-grid-container">
                 {cctvFeeds.map((feed) => (
                     <div key={feed.id} className="cctv-feed-item" onClick={() => openModal(feed.src)}>
@@ -69,11 +69,11 @@ const CCTVManagement = () => {
 const CCTVpage = () => {
     return (
         <div className="Mainpage_box">
-            <div className="page-layout">
+            <div className="page-layout-simple">
                 <Logo/>
                 <MainpageTop />
                 <Sidebar />
-                <div className="cctv-main-content">
+                <div className="content-area">
                     <CCTVManagement />
                 </div>
             </div>

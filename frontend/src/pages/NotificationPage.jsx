@@ -20,7 +20,7 @@ const NotificationPage = () => {
 
   return (
     <div className="Mainpage_box">
-      <div className="page-layout">
+      <div className="page-layout-simple">
         <Logo />
         <MainpageTop />
         <Sidebar />

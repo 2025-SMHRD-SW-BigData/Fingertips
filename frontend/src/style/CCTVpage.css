@@ -1,32 +1,12 @@
-/* ===========================
-   CCTV 메인 컨테이너
-=========================== */
-.cctv-management-container {
-    padding: 20px;
-    background: #2B3341;
-    /* 메인페이지 톤 */
-    border-radius: 20px;
-    border: 2px solid white;
-    color: white;
-    margin-top: 20px;
-    /* 상단바와 간격 */
-    box-sizing: border-box;
-    height: 610px;
-}
 
-/* 제목 */
-.cctv-management-container h2 {
-    color: white;
-    margin-bottom: 15px;
-    font-size: 1.2rem;
-}
 
 /* ===========================
    CCTV 그리드
 =========================== */
 .cctv-grid-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
     gap: 20px;
 }
 
@@ -119,15 +99,4 @@
 }
 
 
-.cctv-main-content {
-    width: 1290px;
-    margin-left: 280px;
-    /* Sidebar 넓이 (240px 기준) */
-    padding: 140px 20px 20px 20px;
-    /* Topbar 110px + 여유 30px */
-    overflow-y: auto;
-    /* 내부 스크롤 */
-    height: calc(100vh - 140px);
-    /* Topbar 제외한 높이 */
-    box-sizing: border-box;
-}
+
