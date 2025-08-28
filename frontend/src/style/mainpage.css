@@ -350,3 +350,27 @@
 .violation-list tr:last-child td {
   border-bottom: none;
 }
+
+/* Notification Page Specific Styles */
+.notification-list table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  table-layout: fixed;
+  word-break: break-word;
+}
+
+.notification-list th, .notification-list td {
+  padding: 12px 10px;
+  text-align: left;
+  border-bottom: 1px solid #4a5568;
+}
+
+.notification-list th {
+  color: #c9d1d9;
+  font-weight: 500;
+}
+
+.notification-list tr:last-child td {
+  border-bottom: none;
+}

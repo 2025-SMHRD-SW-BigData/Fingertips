@@ -53,7 +53,7 @@ const Sidebar = () => {
           <Link to="/violations" style={{ textDecoration: 'none', color: 'inherit' }}>
         <SidebarItem icon={Xcarbell} text="위반차량" count={7} />
     </Link>
-      <SidebarItem icon={checklist} text="알림 내역" count={7} />
+      <Link to="/notifications" style={{ textDecoration: 'none', color: 'inherit' }}><SidebarItem icon={checklist} text="알림 내역" count={7} /></Link>
 
       <SidebarItem icon={vidio} text="영상 정보" />
       <SidebarItem icon={graf} text="통계 분석" />

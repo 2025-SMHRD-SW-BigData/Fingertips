@@ -5,6 +5,7 @@ import MainPage from './component/Mainpage';
 import AdminSignup from './pages/AdminSignup';
 import CCTVpage from './component/CCTVpage';
 import ViolationPage from './pages/ViolationPage';
+import NotificationPage from './pages/NotificationPage';
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem('token');
@@ -34,6 +35,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <ViolationPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute>
+            <NotificationPage />
           </ProtectedRoute>
         }
       />
