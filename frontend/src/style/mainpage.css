@@ -141,6 +141,39 @@
   justify-content: center;
 }
 
+/* Logout Button */
+.login_out {
+  padding: 0; /* allow the button to fill the chip */
+}
+
+.logout-btn {
+  background: transparent;
+  color: #fff;
+  border: none;
+  height: 100%;
+  width: 100%;
+  padding: 0 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.logout-btn:hover {
+  background-color: #4a5568;
+}
+
+.logout-btn:active {
+  background-color: #515c6f;
+}
+
+.logout-btn:focus-visible {
+  outline: 2px solid #63B3ED;
+  outline-offset: 2px;
+}
+
 /* Stats Section */
 .stats-container {
   /* Inherits .box-style */
