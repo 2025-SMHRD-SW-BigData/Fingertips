@@ -8,6 +8,8 @@ const statsRoutes = require('./routes/stats');
 const dashboardRoutes = require('./routes/dashboard');
 const violationsRoutes = require('./routes/violations');
 const alertsRoutes = require('./routes/alerts');
+const vehicleRoutes = require('./routes/vehicleRoutes');
+
 
 const app = express();
 
@@ -28,6 +30,8 @@ app.use('/api/stats', statsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/violations', violationsRoutes);
 app.use('/api/alerts', alertsRoutes);
+app.use("/api/vehicles", vehicleRoutes);
+
 
 const PORT = process.env.APP_PORT || process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`API 서버 시작: http://localhost:${PORT}`));
