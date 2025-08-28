@@ -76,6 +76,87 @@ export const getViolationsTotal = async () => {
   return resp?.pagination?.totalItems ?? 0;
 };
 
+// Helpers for violations list/detail
+const buildQuery = (params = {}) => {
+  const qp = new URLSearchParams();
+  Object.entries(params).forEach(([key, val]) => {
+    if (val === undefined || val === null || val === '') return;
+    qp.set(key, String(val));
+  });
+  const s = qp.toString();
+  return s ? `?${s}` : '';
+};
+
+const normalizeViolationsListResponse = (data, { page = 1, limit = 10 } = {}) => {
+  // Accept various backend shapes and normalize
+  let items = [];
+  let totalItems = undefined;
+  let pageSize = limit;
+  let currentPage = page;
+  let totalPages = undefined;
+
+  if (Array.isArray(data)) {
+    items = data;
+    totalItems = data.length;
+    totalPages = 1;
+  } else if (data && typeof data === 'object') {
+    if (Array.isArray(data.items)) items = data.items;
+    else if (Array.isArray(data.data)) items = data.data;
+    else if (Array.isArray(data.results)) items = data.results;
+
+    const pg = data.pagination || data.meta || data.pageInfo || {};
+    totalItems = pg.totalItems ?? pg.total ?? data.total ?? items.length;
+    pageSize = pg.pageSize ?? pg.limit ?? limit;
+    currentPage = pg.page ?? pg.currentPage ?? page;
+    totalPages = pg.totalPages ?? (totalItems && pageSize ? Math.ceil(totalItems / pageSize) : undefined);
+  }
+
+  return {
+    items,
+    pagination: {
+      totalItems: totalItems ?? items.length,
+      pageSize,
+      currentPage,
+      totalPages: totalPages ?? (pageSize ? Math.ceil((totalItems ?? items.length) / pageSize) : 1),
+    },
+  };
+};
+
+// Violations list with optional filters/pagination
+export const getViolations = async ({
+  page = 1,
+  limit = 10,
+  sort,
+  from,
+  to,
+  keyword,
+  type,
+  status,
+} = {}) => {
+  const query = buildQuery({ page, limit, sort, from, to, keyword, type, status });
+  const raw = await request(`/violations${query}`);
+  return normalizeViolationsListResponse(raw, { page, limit });
+};
+
+// Single violation detail
+export const getViolationById = (id) => request(`/violations/${encodeURIComponent(id)}`);
+
+// Stats (StatisticsPage)
+const qp = (params = {}) => {
+  const sp = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => {
+    if (v === undefined || v === null || v === '') return;
+    sp.set(k, v);
+  });
+  const s = sp.toString();
+  return s ? `?${s}` : '';
+};
+
+export const getStatsByType = (params) => request(`/stats/by-type${qp(params)}`);
+export const getStatsByDate = (params) => request(`/stats/by-date${qp(params)}`);
+export const getStatsByLocation = (params) => request(`/stats/by-location${qp(params)}`);
+export const getStatsByHour = (params) => request(`/stats/by-hour${qp(params)}`);
+
 export default {
   login,
   register,
@@ -85,4 +166,10 @@ export default {
   getParkingLogs,
   getUnreadAlerts,
   getViolationsTotal,
+  getViolations,
+  getViolationById,
+  getStatsByType,
+  getStatsByDate,
+  getStatsByLocation,
+  getStatsByHour,
 };

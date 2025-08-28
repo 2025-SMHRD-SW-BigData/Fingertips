@@ -29,6 +29,7 @@
   background-color: #3a4460;
   padding: 20px;
   border-radius: 10px;
+  position: relative; /* for tooltip positioning */
 }
 
 .chart h2 {
@@ -54,6 +55,7 @@
   align-items: flex-end;
   color: white;
   position: relative;
+  cursor: pointer;
 }
 
 .bar span {
@@ -61,6 +63,18 @@
   bottom: -25px;
   width: 100px;
   text-align: center;
+}
+
+/* (reverted) removed wider spacing for type chart */
+
+.bar-value {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translate(-50%, -4px);
+  font-size: 12px;
+  color: #fff;
+  white-space: nowrap;
 }
 
 .pie-chart {
@@ -72,4 +86,50 @@
     #4a5568 40% 70%,
     #38a169 70% 100%
   );
+}
+
+/* SVG-based pie */
+.pie-svg {
+  width: 180px;
+  height: 180px;
+  display: block;
+}
+
+.pie-svg path {
+  cursor: pointer;
+}
+
+.legend {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #fff;
+  font-size: 12px;
+}
+
+.legend-color {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.chart-tooltip {
+  position: absolute;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  pointer-events: none;
+  transform: translate(8px, 8px);
+  max-width: 240px;
+  white-space: nowrap;
 }

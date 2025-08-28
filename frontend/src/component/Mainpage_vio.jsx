@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import "../style/mainpage.css";
 import { getRecentViolations } from '../services/api';
+import { Link } from 'react-router-dom';
 
 const formatTime = (iso) => {
   if (!iso) return '-';
@@ -31,7 +32,7 @@ const Mainpage_vio = () => {
     <div className='vio box-style'>
       <div className="header">
         <h3>최근 위반</h3>
-        <button className="all-btn">전체 보기</button>
+        <Link to="/violations" className="all-btn" style={{ textDecoration: 'none' }} >전체 보기</Link>
       </div>
       <table className="data-table">
         <colgroup>
