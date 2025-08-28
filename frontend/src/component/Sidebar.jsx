@@ -7,6 +7,8 @@ import graf from '../assets/graf.png';
 import mypage from '../assets/mypage.png';
 import setting from '../assets/setting.png';
 
+import { Link } from 'react-router-dom';
+
 const SidebarItem = ({ icon, text, count }) => (
   <div className="side_sbox">
     <img src={icon} alt={text} style={{ width: "20px", filter: 'brightness(0) invert(1)' }} />
@@ -18,7 +20,9 @@ const SidebarItem = ({ icon, text, count }) => (
 const Sidebar = () => {
   return (
     <div className='Sidebar_box box-style'>
-      <SidebarItem icon={Xcarbell} text="위반차량" count={7} />
+          <Link to="/violations" style={{ textDecoration: 'none', color: 'inherit' }}>
+        <SidebarItem icon={Xcarbell} text="위반차량" count={7} />
+    </Link>
       <SidebarItem icon={checklist} text="알림 내역" count={7} />
       <SidebarItem icon={vidio} text="영상 정보" />
       <SidebarItem icon={graf} text="통계 분석" />

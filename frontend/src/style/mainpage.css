@@ -276,3 +276,44 @@
   cursor: pointer;
   width: 100%;
 }
+
+/* Violation Page Specific Styles */
+.content-area {
+  grid-area: map; /* This might need adjustment based on desired layout */
+  background-color: #2B3341;
+  max-height: 2000px;
+  color: white;
+  border-radius: 20px;
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; 
+}
+
+.content-area h1 {
+  margin-bottom: 20px;
+}
+
+.violation-list table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  table-layout: fixed;
+  word-break: break-word;
+}
+
+.violation-list th, .violation-list td {
+  padding: 12px 10px;
+  text-align: left;
+  border-bottom: 1px solid #4a5568;
+}
+
+.violation-list th {
+  color: #c9d1d9;
+  font-weight: 500;
+}
+
+.violation-list tr:last-child td {
+  border-bottom: none;
+}
