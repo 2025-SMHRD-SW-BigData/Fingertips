@@ -7,12 +7,13 @@ import Logo from '../component/Logo';
 import { getStatsByType, getStatsByDate, getStatsByLocation, getStatsByHour } from '../services/api';
 
 const StatisticsPage = () => {
-  const [filters, setFilters] = useState({ date: '', place: '', type: '' });
+  const [filters, setFilters] = useState({ date: '', from: '', to: '', place: '', type: '' });
 
   const [byType, setByType] = useState({ data: [], loading: true, error: null });
   const [byDate, setByDate] = useState({ data: [], loading: true, error: null });
   const [byHour, setByHour] = useState({ data: [], loading: false, error: null });
   const [byLocation, setByLocation] = useState({ data: [], loading: true, error: null });
+  const [parkingIdx, setParkingIdx] = useState(() => (typeof localStorage !== 'undefined' ? (localStorage.getItem('parking_idx') || '') : ''));
   const [ttType, setTtType] = useState({ visible: false, x: 0, y: 0, content: null, pinned: false });
   const [ttDate, setTtDate] = useState({ visible: false, x: 0, y: 0, content: null, pinned: false });
   const [ttLoc, setTtLoc] = useState({ visible: false, x: 0, y: 0, content: null, pinned: false });
@@ -32,28 +33,35 @@ const StatisticsPage = () => {
     return keys[0];
   };
 
-  // Fetch by filters: if date selected, filter type/location and switch to hourly; else load daily
+  // Fetch by filters: prefer from/to range; otherwise date; parkingIdx gates location chart
   useEffect(() => {
     let alive = true;
     const date = filters.date;
+    const from = filters.from;
+    const to = filters.to;
+    const params = (from && to) ? { from, to } : (date ? { date } : undefined);
 
     // Type
     setByType((s) => ({ ...s, loading: true, error: null }));
-    getStatsByType(date ? { date } : undefined)
+    getStatsByType(params)
       .then((rows) => {
         if (!alive) return;
         setByType({ data: Array.isArray(rows) ? rows : [], loading: false, error: null });
       })
       .catch((err) => alive && setByType({ data: [], loading: false, error: err.message || 'Failed to load' }));
 
-    // Location
-    setByLocation((s) => ({ ...s, loading: true, error: null }));
-    getStatsByLocation(date ? { date } : undefined)
-      .then((rows) => {
-        if (!alive) return;
-        setByLocation({ data: Array.isArray(rows) ? rows : [], loading: false, error: null });
-      })
-      .catch((err) => alive && setByLocation({ data: [], loading: false, error: err.message || 'Failed to load' }));
+    // Location: only load when ALL (no parking_idx selected)
+    if (!parkingIdx) {
+      setByLocation((s) => ({ ...s, loading: true, error: null }));
+      getStatsByLocation(params)
+        .then((rows) => {
+          if (!alive) return;
+          setByLocation({ data: Array.isArray(rows) ? rows : [], loading: false, error: null });
+        })
+        .catch((err) => alive && setByLocation({ data: [], loading: false, error: err.message || 'Failed to load' }));
+    } else {
+      setByLocation({ data: [], loading: false, error: null });
+    }
 
     // 시간별 전환 기능 비활성화 (주석 처리)
     // if (date) {
@@ -80,7 +88,7 @@ const StatisticsPage = () => {
     // 항상 일자별 시계열 사용
     setByHour({ data: [], loading: false, error: null });
     setByDate((s) => ({ ...s, loading: true, error: null }));
-    getStatsByDate()
+    getStatsByDate(params)
       .then((rows) => {
         if (!alive) return;
         setByDate({ data: Array.isArray(rows) ? rows : [], loading: false, error: null });
@@ -90,7 +98,16 @@ const StatisticsPage = () => {
     return () => {
       alive = false;
     };
-  }, [filters.date]);
+  }, [filters.date, filters.from, filters.to, parkingIdx]);
+
+  useEffect(() => {
+    const handler = (e) => {
+      const val = (e && e.detail) || (typeof localStorage !== 'undefined' ? (localStorage.getItem('parking_idx') || '') : '');
+      setParkingIdx(val);
+    };
+    window.addEventListener('parking-change', handler);
+    return () => window.removeEventListener('parking-change', handler);
+  }, []);
 
   // Normalize datasets for charts
   const typeChart = useMemo(() => {
@@ -154,7 +171,13 @@ const StatisticsPage = () => {
           <h1>통계 분석</h1>
           <div className="statistics-content">
             <div className="filters">
+              <label style={{ marginRight: 8 }}>Date:</label>
               <input type="date" name="date" value={filters.date} onChange={handleFilterChange} />
+              <span style={{ margin: '0 8px' }}>|</span>
+              <label style={{ marginRight: 8 }}>From:</label>
+              <input type="date" name="from" value={filters.from} onChange={handleFilterChange} />
+              <label style={{ margin: '0 8px' }}>To:</label>
+              <input type="date" name="to" value={filters.to} onChange={handleFilterChange} />
               <select name="place" value={filters.place} onChange={handleFilterChange}>
                 <option value="">장소 선택</option>
                 <option value="entrance">출구</option>
@@ -229,6 +252,7 @@ const StatisticsPage = () => {
               </div>
               <div
                 className="chart"
+                style={{ display: parkingIdx ? 'none' : undefined }}
                 onMouseMove={(e) => {
                   if (!ttLoc.visible) return;
                   const rect = e.currentTarget.getBoundingClientRect();

@@ -48,6 +48,18 @@ async function request(endpoint, options = {}) {
   return data;
 }
 
+// Selected parking index (persisted)
+function getSelectedParkingIdx() {
+  try {
+    const v = typeof localStorage !== 'undefined' ? localStorage.getItem('parking_idx') : null;
+    if (!v) return null;
+    const n = parseInt(v, 10);
+    return Number.isFinite(n) ? n : null;
+  } catch (_) {
+    return null;
+  }
+}
+
 // Auth
 export const login = (credentials) =>
   request('/auth/login', {
@@ -61,11 +73,33 @@ export const register = (userData) =>
     body: JSON.stringify(userData),
   });
 
+// Parking list
+export const getParkings = () => request('/parking');
+
 // Dashboard
-export const getDashboardSummary = () => request('/dashboard/summary');
-export const getParkingStatus = () => request('/dashboard/parking-status');
-export const getRecentViolations = () => request('/dashboard/recent-violations');
-export const getParkingLogs = () => request('/dashboard/parking-logs');
+export const getDashboardSummary = ({ parkingIdx } = {}) => {
+  const idx = parkingIdx ?? getSelectedParkingIdx();
+  const q = idx ? `?parking_idx=${encodeURIComponent(idx)}` : '';
+  return request(`/dashboard/summary${q}`);
+};
+
+export const getParkingStatus = ({ parkingIdx } = {}) => {
+  const idx = parkingIdx ?? getSelectedParkingIdx();
+  const q = idx ? `?parking_idx=${encodeURIComponent(idx)}` : '';
+  return request(`/dashboard/parking-status${q}`);
+};
+
+export const getRecentViolations = ({ parkingIdx } = {}) => {
+  const idx = parkingIdx ?? getSelectedParkingIdx();
+  const q = idx ? `?parking_idx=${encodeURIComponent(idx)}` : '';
+  return request(`/dashboard/recent-violations${q}`);
+};
+
+export const getParkingLogs = ({ parkingIdx } = {}) => {
+  const idx = parkingIdx ?? getSelectedParkingIdx();
+  const q = idx ? `?parking_idx=${encodeURIComponent(idx)}` : '';
+  return request(`/dashboard/parking-logs${q}`);
+};
 
 // Alerts and violations helpers
 export const getUnreadAlerts = (adminId) =>
@@ -132,8 +166,10 @@ export const getViolations = async ({
   keyword,
   type,
   status,
+  parkingIdx,
 } = {}) => {
-  const query = buildQuery({ page, limit, sort, from, to, keyword, type, status });
+  const idx = parkingIdx ?? getSelectedParkingIdx();
+  const query = buildQuery({ page, limit, sort, from, to, keyword, type, status, parking_idx: idx });
   const raw = await request(`/violations${query}`);
   return normalizeViolationsListResponse(raw, { page, limit });
 };
@@ -152,10 +188,22 @@ const qp = (params = {}) => {
   return s ? `?${s}` : '';
 };
 
-export const getStatsByType = (params) => request(`/stats/by-type${qp(params)}`);
-export const getStatsByDate = (params) => request(`/stats/by-date${qp(params)}`);
-export const getStatsByLocation = (params) => request(`/stats/by-location${qp(params)}`);
-export const getStatsByHour = (params) => request(`/stats/by-hour${qp(params)}`);
+export const getStatsByType = (params = {}) => {
+  const idx = params.parking_idx ?? params.parkingIdx ?? getSelectedParkingIdx();
+  return request(`/stats/by-type${qp({ ...params, parking_idx: idx })}`);
+};
+export const getStatsByDate = (params = {}) => {
+  const idx = params.parking_idx ?? params.parkingIdx ?? getSelectedParkingIdx();
+  return request(`/stats/by-date${qp({ ...params, parking_idx: idx })}`);
+};
+export const getStatsByLocation = (params = {}) => {
+  const idx = params.parking_idx ?? params.parkingIdx ?? getSelectedParkingIdx();
+  return request(`/stats/by-location${qp({ ...params, parking_idx: idx })}`);
+};
+export const getStatsByHour = (params = {}) => {
+  const idx = params.parking_idx ?? params.parkingIdx ?? getSelectedParkingIdx();
+  return request(`/stats/by-hour${qp({ ...params, parking_idx: idx })}`);
+};
 
 export default {
   login,
@@ -164,6 +212,7 @@ export default {
   getParkingStatus,
   getRecentViolations,
   getParkingLogs,
+  getParkings,
   getUnreadAlerts,
   getViolationsTotal,
   getViolations,

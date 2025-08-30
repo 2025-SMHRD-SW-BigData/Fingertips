@@ -9,6 +9,7 @@ const dashboardRoutes = require('./routes/dashboard');
 const violationsRoutes = require('./routes/violations');
 const alertsRoutes = require('./routes/alerts');
 const vehicleRoutes = require('./routes/vehicleRoutes');
+const parkingRoutes = require('./routes/parking');
 
 
 const app = express();
@@ -31,6 +32,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/violations', violationsRoutes);
 app.use('/api/alerts', alertsRoutes);
 app.use("/api/vehicles", vehicleRoutes);
+app.use('/api/parking', parkingRoutes);
 
 
 const PORT = process.env.APP_PORT || process.env.PORT || 3000;

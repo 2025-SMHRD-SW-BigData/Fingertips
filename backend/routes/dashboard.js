@@ -6,10 +6,25 @@ const router = express.Router();
 // GET /api/dashboard/summary
 router.get('/summary', async (req, res, next) => {
   try {
-    const td = await db.query("SELECT COUNT(*) AS total_disabled FROM tb_parking_space WHERE space_type = 'disabled'");
-    const cd = await db.query("SELECT COUNT(*) AS current_disabled FROM tb_parking_space WHERE space_type = 'disabled' AND is_occupied = TRUE");
-    const tg = await db.query("SELECT COUNT(*) AS total_general FROM tb_parking_space WHERE space_type = 'general'");
-    const cg = await db.query("SELECT COUNT(*) AS current_general FROM tb_parking_space WHERE space_type = 'general' AND is_occupied = TRUE");
+    const parkingIdx = parseInt(req.query.parking_idx, 10);
+    const hasFilter = Number.isFinite(parkingIdx);
+
+    const td = await db.query(
+      `SELECT COUNT(*) AS total_disabled FROM tb_parking_space WHERE space_type = 'disabled'${hasFilter ? ' AND parking_idx = ?' : ''}`,
+      hasFilter ? [parkingIdx] : []
+    );
+    const cd = await db.query(
+      `SELECT COUNT(*) AS current_disabled FROM tb_parking_space WHERE space_type = 'disabled' AND is_occupied = TRUE${hasFilter ? ' AND parking_idx = ?' : ''}`,
+      hasFilter ? [parkingIdx] : []
+    );
+    const tg = await db.query(
+      `SELECT COUNT(*) AS total_general FROM tb_parking_space WHERE space_type = 'general'${hasFilter ? ' AND parking_idx = ?' : ''}`,
+      hasFilter ? [parkingIdx] : []
+    );
+    const cg = await db.query(
+      `SELECT COUNT(*) AS current_general FROM tb_parking_space WHERE space_type = 'general' AND is_occupied = TRUE${hasFilter ? ' AND parking_idx = ?' : ''}`,
+      hasFilter ? [parkingIdx] : []
+    );
     const tv = await db.query('SELECT COUNT(*) AS today_violations FROM tb_violation WHERE DATE(created_at) = CURDATE()');
 
     const total_disabled = td[0]?.total_disabled || 0;
@@ -32,8 +47,14 @@ router.get('/summary', async (req, res, next) => {
 // GET /api/dashboard/parking-status
 router.get('/parking-status', async (req, res, next) => {
   try {
+    const parkingIdx = parseInt(req.query.parking_idx, 10);
+    const hasFilter = Number.isFinite(parkingIdx);
     const rows = await db.query(
-      'SELECT space_id, space_type, is_occupied, ve_number FROM tb_parking_space ORDER BY space_id'
+      `SELECT space_id, space_type, is_occupied, ve_number
+         FROM tb_parking_space
+        ${hasFilter ? 'WHERE parking_idx = ?' : ''}
+        ORDER BY space_id`,
+      hasFilter ? [parkingIdx] : []
     );
     res.json(rows);
   } catch (err) {
@@ -45,6 +66,8 @@ router.get('/parking-status', async (req, res, next) => {
 // GET /api/dashboard/recent-violations (latest 5)
 router.get('/recent-violations', async (req, res, next) => {
   try {
+    const parkingIdx = parseInt(req.query.parking_idx, 10);
+    const hasFilter = Number.isFinite(parkingIdx);
     const rows = await db.query(
       `SELECT v.violation_idx,
               d.ve_number,
@@ -59,8 +82,10 @@ router.get('/recent-violations', async (req, res, next) => {
                             AND a.sent_at = (
                                 SELECT MAX(a2.sent_at) FROM tb_alert a2 WHERE a2.violation_idx = v.violation_idx
                             )
+        ${hasFilter ? 'WHERE d.parking_idx = ?' : ''}
         ORDER BY v.created_at DESC
-        LIMIT 5`
+        LIMIT 5`,
+      hasFilter ? [parkingIdx] : []
     );
     res.json(rows);
   } catch (err) {
@@ -72,11 +97,21 @@ router.get('/recent-violations', async (req, res, next) => {
 // GET /api/dashboard/parking-logs (latest 5)
 router.get('/parking-logs', async (req, res, next) => {
   try {
+    const parkingIdx = parseInt(req.query.parking_idx, 10);
+    const hasFilter = Number.isFinite(parkingIdx);
     const rows = await db.query(
-      `SELECT log_idx, ve_number, space_id, entry_at, exit_at
-         FROM tb_parking_log
-        ORDER BY entry_at DESC
-        LIMIT 5`
+      hasFilter
+        ? `SELECT pl.log_idx, pl.ve_number, pl.space_id, pl.entry_at, pl.exit_at
+             FROM tb_parking_log pl
+             JOIN tb_parking_space ps ON ps.space_id = pl.space_id
+            WHERE ps.parking_idx = ?
+            ORDER BY pl.entry_at DESC
+            LIMIT 5`
+        : `SELECT log_idx, ve_number, space_id, entry_at, exit_at
+             FROM tb_parking_log
+            ORDER BY entry_at DESC
+            LIMIT 5`,
+      hasFilter ? [parkingIdx] : []
     );
     res.json(rows);
   } catch (err) {

@@ -18,6 +18,7 @@ router.get('/', async (req, res, next) => {
     const offset = (page - 1) * limit;
     const search = (req.query.search || '').trim();
     const date = (req.query.date || '').trim();
+    const parkingIdx = parseInt(req.query.parking_idx, 10);
 
     const where = [];
     const params = [];
@@ -29,6 +30,10 @@ router.get('/', async (req, res, next) => {
     if (date) {
       where.push('DATE(v.created_at) = ?');
       params.push(date);
+    }
+    if (Number.isFinite(parkingIdx)) {
+      where.push('d.parking_idx = ?');
+      params.push(parkingIdx);
     }
 
     const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
@@ -111,4 +116,3 @@ router.get('/:id', async (req, res, next) => {
 });
 
 module.exports = router;
-
