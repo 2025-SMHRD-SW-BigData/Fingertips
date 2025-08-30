@@ -120,4 +120,56 @@ router.get('/parking-logs', async (req, res, next) => {
   }
 });
 
+// GET /api/dashboard/summary-by-parking
+router.get('/summary-by-parking', async (req, res, next) => {
+  try {
+    const parkingIdx = parseInt(req.query.parking_idx, 10);
+    const hasFilter = Number.isFinite(parkingIdx);
+    const rows = await db.query(
+      `SELECT p.PARKING_IDX AS parking_idx,
+              p.PARKING_LOC AS parking_loc,
+              SUM(CASE WHEN s.space_type = 'general'  THEN 1 ELSE 0 END) AS total_general,
+              SUM(CASE WHEN s.space_type = 'general'  AND s.is_occupied = TRUE THEN 1 ELSE 0 END) AS occupied_general,
+              SUM(CASE WHEN s.space_type = 'disabled' THEN 1 ELSE 0 END) AS total_disabled,
+              SUM(CASE WHEN s.space_type = 'disabled' AND s.is_occupied = TRUE THEN 1 ELSE 0 END) AS occupied_disabled
+         FROM tb_parking p
+         LEFT JOIN tb_parking_space s ON s.parking_idx = p.PARKING_IDX
+        ${hasFilter ? 'WHERE p.PARKING_IDX = ?' : ''}
+        GROUP BY p.PARKING_IDX, p.PARKING_LOC
+        ORDER BY p.PARKING_IDX`,
+      hasFilter ? [parkingIdx] : []
+    );
+
+    const mapped = rows.map((r) => {
+      const tg = Number(r.total_general || 0);
+      const og = Number(r.occupied_general || 0);
+      const td = Number(r.total_disabled || 0);
+      const od = Number(r.occupied_disabled || 0);
+      const atg = Math.max(0, tg - og);
+      const atd = Math.max(0, td - od);
+      const ot = og + od;
+      const tt = tg + td;
+      return {
+        parking_idx: Number(r.parking_idx),
+        parking_loc: r.parking_loc,
+        total_general: tg,
+        occupied_general: og,
+        total_disabled: td,
+        occupied_disabled: od,
+        available_general: atg,
+        available_disabled: atd,
+        occupied_total: ot,
+        available_total: atg + atd,
+        utilization: tt ? ot / tt : 0,
+      };
+    });
+
+    res.json(mapped);
+  } catch (err) {
+    console.error('Error in /dashboard/summary-by-parking', err);
+    next(err);
+  }
+});
+
 module.exports = router;
+ 

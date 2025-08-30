@@ -7,7 +7,13 @@ import Logo from '../component/Logo';
 import { getStatsByType, getStatsByDate, getStatsByLocation, getStatsByHour } from '../services/api';
 
 const StatisticsPage = () => {
-  const [filters, setFilters] = useState({ date: '', from: '', to: '', place: '', type: '' });
+  const [filters, setFilters] = useState(() => {
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    return { date: '', from: '', to: `${y}-${m}-${d}`, place: '', type: '' };
+  });
 
   const [byType, setByType] = useState({ data: [], loading: true, error: null });
   const [byDate, setByDate] = useState({ data: [], loading: true, error: null });
@@ -20,7 +26,17 @@ const StatisticsPage = () => {
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilters((prev) => ({ ...prev, [name]: value }));
+    setFilters((prev) => {
+      if (name === 'date') {
+        // Single-day search: clear any range so daily graph responds
+        return { ...prev, date: value, from: '', to: '' };
+      }
+      if (name === 'from' || name === 'to') {
+        // Range search: clear single-day input
+        return { ...prev, [name]: value, date: '' };
+      }
+      return { ...prev, [name]: value };
+    });
   };
 
   // Try to pick appropriate keys in a flexible way
@@ -33,13 +49,14 @@ const StatisticsPage = () => {
     return keys[0];
   };
 
-  // Fetch by filters: prefer from/to range; otherwise date; parkingIdx gates location chart
+  // Fetch by filters
   useEffect(() => {
     let alive = true;
-    const date = filters.date;
-    const from = filters.from;
-    const to = filters.to;
-    const params = (from && to) ? { from, to } : (date ? { date } : undefined);
+    const { date, from, to } = filters;
+    const params = {};
+    if (date) params.date = date;
+    if (from) params.from = from;
+    if (to) params.to = to;
 
     // Type
     setByType((s) => ({ ...s, loading: true, error: null }));
@@ -63,29 +80,7 @@ const StatisticsPage = () => {
       setByLocation({ data: [], loading: false, error: null });
     }
 
-    // 시간별 전환 기능 비활성화 (주석 처리)
-    // if (date) {
-    //   setByHour({ data: [], loading: true, error: null });
-    //   setByDate({ data: [], loading: false, error: null });
-    //   getStatsByHour({ date })
-    //     .then((rows) => {
-    //       if (!alive) return;
-    //       setByHour({ data: Array.isArray(rows) ? rows : [], loading: false, error: null });
-    //     })
-    //     .catch((err) => alive && setByHour({ data: [], loading: false, error: err.message || 'Failed to load' }));
-    // } else {
-    //   // Daily time series
-    //   setByHour({ data: [], loading: false, error: null });
-    //   setByDate((s) => ({ ...s, loading: true, error: null }));
-    //   getStatsByDate()
-    //     .then((rows) => {
-    //       if (!alive) return;
-    //       setByDate({ data: Array.isArray(rows) ? rows : [], loading: false, error: null });
-    //     })
-    //     .catch((err) => alive && setByDate({ data: [], loading: false, error: err.message || 'Failed to load' }));
-    // }
-
-    // 항상 일자별 시계열 사용
+    // Always use daily time series, filtered by date range if provided
     setByHour({ data: [], loading: false, error: null });
     setByDate((s) => ({ ...s, loading: true, error: null }));
     getStatsByDate(params)
@@ -123,8 +118,17 @@ const StatisticsPage = () => {
     if (!rows?.length) return [];
     const labelKey = pickKeys(rows[0], ['violation_date', 'date', 'day', 'created_at']);
     const valueKey = pickKeys(rows[0], ['cnt', 'count', 'total', 'value']);
-    return rows.map((r) => ({ label: String(r[labelKey]).slice(0, 10), value: Number(r[valueKey] ?? 0) }));
-  }, [byDate.data]);
+
+    const { from, to } = filters;
+    const filteredRows = rows.filter(r => {
+      const rowDate = String(r[labelKey]).slice(0, 10);
+      if (from && rowDate < from) return false;
+      if (to && rowDate > to) return false;
+      return true;
+    });
+
+    return filteredRows.map((r) => ({ label: String(r[labelKey]).slice(0, 10), value: Number(r[valueKey] ?? 0) }));
+  }, [byDate.data, filters.from, filters.to]);
 
   const hourChart = useMemo(() => {
     if (!filters.date) return [];
@@ -171,9 +175,6 @@ const StatisticsPage = () => {
           <h1>통계 분석</h1>
           <div className="statistics-content">
             <div className="filters">
-              <label style={{ marginRight: 8 }}>Date:</label>
-              <input type="date" name="date" value={filters.date} onChange={handleFilterChange} />
-              <span style={{ margin: '0 8px' }}>|</span>
               <label style={{ marginRight: 8 }}>From:</label>
               <input type="date" name="from" value={filters.from} onChange={handleFilterChange} />
               <label style={{ margin: '0 8px' }}>To:</label>

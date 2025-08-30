@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import '../style/mainpage.css';
 import search from '../assets/search.png';
 import bell from '../assets/bell.png';
-import { getParkings } from '../services/api';
+import { getParkings, getUnreadAlerts } from '../services/api';
 
 const MainpageTop = () => {
   const navigate = useNavigate();
@@ -11,6 +11,7 @@ const MainpageTop = () => {
 
   const [now, setNow] = useState(new Date());
   const [parkings, setParkings] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [selectedParking, setSelectedParking] = useState(() => {
     const v = localStorage.getItem('parking_idx');
     const n = v ? parseInt(v, 10) : null;
@@ -34,6 +35,47 @@ const MainpageTop = () => {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const adminId = localStorage.getItem('admin_id');
+    if (!adminId) {
+      setUnreadCount(0);
+      return () => { active = false; };
+    }
+    const load = () => {
+      getUnreadAlerts(adminId)
+        .then((rows) => {
+          if (active) setUnreadCount(Array.isArray(rows) ? rows.length : 0);
+        })
+        .catch(() => {
+          if (active) setUnreadCount(0);
+        });
+    };
+    load();
+    // Optional: light polling to keep fresh
+    const id = setInterval(load, 60000);
+    return () => {
+      active = false;
+      clearInterval(id);
+    };
+  }, []);
+
+  // Refresh unread count when notifications are updated elsewhere
+  useEffect(() => {
+    const handler = () => {
+      const adminId = localStorage.getItem('admin_id');
+      if (!adminId) {
+        setUnreadCount(0);
+        return;
+      }
+      getUnreadAlerts(adminId)
+        .then((rows) => setUnreadCount(Array.isArray(rows) ? rows.length : 0))
+        .catch(() => setUnreadCount(0));
+    };
+    window.addEventListener('alerts-updated', handler);
+    return () => window.removeEventListener('alerts-updated', handler);
   }, []);
 
   const handleLogout = () => {
@@ -99,9 +141,20 @@ const MainpageTop = () => {
         <div className='manager'>
           Admin: {adminName}
         </div>
-        <div className='Noti'>
+        <button
+          type="button"
+          className='Noti top-bell'
+          onClick={() => navigate('/notifications')}
+          title="Notifications"
+          style={{ cursor: 'pointer', border: 'none' }}
+        >
           <img src={bell} alt="Notifications" style={{ width: '20px' }} />
-        </div>
+          {unreadCount > 0 && (
+            <span className="notification-badge" aria-label={`${unreadCount} unread notifications`}>
+              {unreadCount}
+            </span>
+          )}
+        </button>
         <div className='login_out'>
           <button onClick={handleLogout} className='logout-btn'>Logout</button>
         </div>
@@ -111,4 +164,3 @@ const MainpageTop = () => {
 };
 
 export default MainpageTop;
-

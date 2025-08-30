@@ -105,6 +105,17 @@ export const getParkingLogs = ({ parkingIdx } = {}) => {
 export const getUnreadAlerts = (adminId) =>
   request(`/alerts?status=unread&admin_id=${encodeURIComponent(adminId)}`);
 
+// Alerts list by status (all|unread)
+export const getAlerts = (adminId, { status = 'all' } = {}) =>
+  request(`/alerts?admin_id=${encodeURIComponent(adminId)}&status=${encodeURIComponent(status)}`);
+
+// Update single alert (e.g., { read: true })
+export const updateAlert = (id, body = {}) =>
+  request(`/alerts/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+
 export const getViolationsTotal = async () => {
   const resp = await request('/violations?limit=1');
   return resp?.pagination?.totalItems ?? 0;
@@ -205,6 +216,13 @@ export const getStatsByHour = (params = {}) => {
   return request(`/stats/by-hour${qp({ ...params, parking_idx: idx })}`);
 };
 
+// Parking summary per lot (ALL or by parking_idx)
+export const getParkingSummaryByLot = (params = {}) => {
+  const idx = params.parking_idx ?? params.parkingIdx ?? getSelectedParkingIdx();
+  const q = idx ? `?parking_idx=${encodeURIComponent(idx)}` : '';
+  return request(`/dashboard/summary-by-parking${q}`);
+};
+
 export default {
   login,
   register,
@@ -214,6 +232,8 @@ export default {
   getParkingLogs,
   getParkings,
   getUnreadAlerts,
+  getAlerts,
+  updateAlert,
   getViolationsTotal,
   getViolations,
   getViolationById,
@@ -221,4 +241,5 @@ export default {
   getStatsByDate,
   getStatsByLocation,
   getStatsByHour,
+  getParkingSummaryByLot,
 };

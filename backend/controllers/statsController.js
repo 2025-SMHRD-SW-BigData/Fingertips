@@ -71,20 +71,19 @@ async function getViolationsByDate(req, res, next) {
       const where = [];
       const params = [];
       if (range) {
-        where.push('v.created_at >= ? AND v.created_at <= ?');
-        params.push(range.start, range.end);
-      }
+        where.push('DATE(v.created_at) >= ? AND DATE(v.created_at) <= ?');
+        params.push(range.start, range.end)      }
       if (parkingIdx !== null) {
         where.push('d.parking_idx = ?');
         params.push(parkingIdx);
       }
       const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
       const rows = await db.query(
-        `SELECT DATE(v.created_at) AS date, COUNT(*) AS cnt
+        `SELECT DATE_FORMAT(v.created_at, '%Y-%m-%d') AS date, COUNT(*) AS cnt
            FROM tb_violation v
            JOIN tb_detection d ON d.ve_detection_idx = v.ve_detection_idx
          ${whereSql}
-          GROUP BY DATE(v.created_at)
+          GROUP BY date
           ORDER BY date`,
         params
       );

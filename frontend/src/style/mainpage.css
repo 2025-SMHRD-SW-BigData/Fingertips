@@ -159,7 +159,8 @@
   gap: 15px;
 }
 
-.top-bar-widgets > div {
+.top-bar-widgets > div,
+.top-bar-widgets > button {
   background-color: #3b4252;
   padding: 8px 12px;
   border-radius: 10px;
@@ -167,6 +168,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Top bell wrapper for absolute badge */
+.top-bell { position: relative; }
+.top-bell .notification-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  font-size: 11px;
+  padding: 0 4px;
+  border-radius: 999px;
 }
 
 /* Stats Section */
