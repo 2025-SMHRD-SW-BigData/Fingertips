@@ -8,7 +8,8 @@ import mypage from '../assets/mypage.png';
 import setting from '../assets/setting.png';
 import { getUnreadAlerts, getViolationsTotal } from '../services/api';
 
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import ParkingControls from './ParkingControls';
 
 const SidebarItem = ({ icon, text, count }) => (
   <div className="side_sbox">
@@ -19,6 +20,7 @@ const SidebarItem = ({ icon, text, count }) => (
 );
 
 const Sidebar = () => {
+  const location = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
   const [violationsCount, setViolationsCount] = useState(0);
 

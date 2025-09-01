@@ -3,6 +3,7 @@ import '../style/mainpage.css';
 import Sidebar from '../component/Sidebar';
 import MainpageTop from '../component/MainpageTop';
 import Logo from '../component/Logo';
+import ParkingControls from '../component/ParkingControls';
 import { getAlerts, updateAlert } from '../services/api';
 
 const NotificationPage = () => {
@@ -83,9 +84,12 @@ const NotificationPage = () => {
         <div className="content-area">
           <div className="header">
             <h1>알림 내역</h1>
-            <button className="all-btn" onClick={handleMarkAllRead} disabled={markingAll}>
+            <div className="notif-tools">
+              <ParkingControls />
+              <button className="all-btn" onClick={handleMarkAllRead} disabled={markingAll}>
               {markingAll ? '처리 중…' : '전체 읽음 처리'}
             </button>
+            </div>
           </div>
           <div className="notification-list">
             {loading && <p>불러오는 중…</p>}

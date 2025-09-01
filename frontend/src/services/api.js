@@ -73,8 +73,22 @@ export const register = (userData) =>
     body: JSON.stringify(userData),
   });
 
+// Change password
+export const changePassword = (payload = {}) =>
+  request('/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+
 // Parking list
 export const getParkings = () => request('/parking');
+
+// Parkings filtered by administrative district code
+export const getParkingsByDistrict = (code) => {
+  const c = (code ?? '').toString().trim();
+  if (!c) return getParkings();
+  return request(`/parking?district=${encodeURIComponent(c)}`);
+};
 
 // Dashboard
 export const getDashboardSummary = ({ parkingIdx } = {}) => {
@@ -231,6 +245,7 @@ export default {
   getRecentViolations,
   getParkingLogs,
   getParkings,
+  getParkingsByDistrict,
   getUnreadAlerts,
   getAlerts,
   updateAlert,
@@ -242,4 +257,5 @@ export default {
   getStatsByLocation,
   getStatsByHour,
   getParkingSummaryByLot,
+  changePassword,
 };

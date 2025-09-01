@@ -66,6 +66,44 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// 3) Change password
+router.post('/change-password', async (req, res) => {
+  try {
+    const { admin_id, current_password, new_password } = req.body || {};
+    if (!admin_id || !current_password || !new_password) {
+      return res.status(400).json({ message: '필수 항목(admin_id, current_password, new_password)이 누락되었습니다.' });
+    }
+
+    const [rows] = await dbPool.query(
+      'SELECT admin_id, hashed_password FROM tb_admin WHERE admin_id = ? LIMIT 1',
+      [admin_id]
+    );
+    if (!rows.length) {
+      return res.status(404).json({ message: '관리자를 찾을 수 없습니다.' });
+    }
+    const user = rows[0];
+    const ok = await argon2.verify(user.hashed_password, current_password);
+    if (!ok) {
+      return res.status(401).json({ message: '현재 비밀번호가 올바르지 않습니다.' });
+    }
+
+    const passwordHash = await argon2.hash(new_password, {
+      type: argon2.argon2id,
+      memoryCost: 2 ** 16,
+      timeCost: 3,
+      parallelism: 1,
+    });
+    await dbPool.query(
+      'UPDATE tb_admin SET hashed_password = ?, last_logged_at = last_logged_at WHERE admin_id = ? LIMIT 1',
+      [passwordHash, admin_id]
+    );
+    return res.status(200).json({ message: '비밀번호가 변경되었습니다.' });
+  } catch (err) {
+    console.error('Change Password Error:', err);
+    return res.status(500).json({ message: '서버 오류' });
+  }
+});
+
 module.exports = router;
 // 경량 버전 내 정보 조회 (JWT 없이 admin_id 전달)
 router.get('/me', async (req, res) => {

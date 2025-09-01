@@ -17,13 +17,19 @@ const Main_inout = () => {
 
   useEffect(() => {
     let mounted = true;
-    getParkingLogs()
-      .then((data) => {
-        if (mounted) setRows(Array.isArray(data) ? data : []);
-      })
-      .catch((err) => console.error('Failed to load parking logs', err));
+    const load = () => {
+      getParkingLogs()
+        .then((data) => {
+          if (mounted) setRows(Array.isArray(data) ? data : []);
+        })
+        .catch((err) => console.error('Failed to load parking logs', err));
+    };
+    load();
+    const handler = () => load();
+    window.addEventListener('parking-change', handler);
     return () => {
       mounted = false;
+      window.removeEventListener('parking-change', handler);
     };
   }, []);
 
@@ -74,4 +80,3 @@ const Main_inout = () => {
 };
 
 export default Main_inout;
-

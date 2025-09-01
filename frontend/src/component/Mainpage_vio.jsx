@@ -18,13 +18,19 @@ const Mainpage_vio = () => {
 
   useEffect(() => {
     let mounted = true;
-    getRecentViolations()
-      .then((data) => {
-        if (mounted) setRows(Array.isArray(data) ? data : []);
-      })
-      .catch((err) => console.error('Failed to load recent violations', err));
+    const load = () => {
+      getRecentViolations()
+        .then((data) => {
+          if (mounted) setRows(Array.isArray(data) ? data : []);
+        })
+        .catch((err) => console.error('Failed to load recent violations', err));
+    };
+    load();
+    const handler = () => load();
+    window.addEventListener('parking-change', handler);
     return () => {
       mounted = false;
+      window.removeEventListener('parking-change', handler);
     };
   }, []);
 
@@ -80,4 +86,3 @@ const Mainpage_vio = () => {
 };
 
 export default Mainpage_vio;
-

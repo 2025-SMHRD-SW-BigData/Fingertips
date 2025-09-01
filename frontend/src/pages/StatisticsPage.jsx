@@ -5,6 +5,7 @@ import Sidebar from '../component/Sidebar';
 import MainpageTop from '../component/MainpageTop';
 import Logo from '../component/Logo';
 import { getStatsByType, getStatsByDate, getStatsByLocation, getStatsByHour } from '../services/api';
+import ParkingControls from '../component/ParkingControls';
 
 const StatisticsPage = () => {
   const [filters, setFilters] = useState(() => {
@@ -172,8 +173,15 @@ const StatisticsPage = () => {
         <MainpageTop />
         <Sidebar />
         <div className="content-area">
-          <h1>통계 분석</h1>
+          <div className="header">
+            <h1>통계 분석</h1>
+            <div className="stats-tools">
+              <ParkingControls />
+            </div>
+          </div>
+          
           <div className="statistics-content">
+            
             <div className="filters">
               <label style={{ marginRight: 8 }}>From:</label>
               <input type="date" name="from" value={filters.from} onChange={handleFilterChange} />

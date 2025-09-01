@@ -15,7 +15,7 @@ const Mainpage = () => {
         <Logo></Logo>
         <MainpageTop />
         <Sidebar />
-        
+
           <StatisticsBox />
           <MainpageMap></MainpageMap>
           <div className="bottom-content">

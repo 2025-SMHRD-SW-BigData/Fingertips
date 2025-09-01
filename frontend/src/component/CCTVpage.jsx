@@ -4,6 +4,7 @@ import '../style/CCTVpage.css';
 import Sidebar from './Sidebar';
 import MainpageTop from './MainpageTop';
 import Logo from './Logo';
+import ParkingControls from './ParkingControls';
 
 const CCTVManagement = () => {
     const [modalSrc, setModalSrc] = useState(null);
@@ -32,6 +33,24 @@ const CCTVManagement = () => {
         ],
     };
     const [selectedParkingLot, setSelectedParkingLot] = useState(Object.keys(parkingLotData)[0]);
+    const [parkingIdx, setParkingIdx] = useState(() => (typeof localStorage !== 'undefined' ? (localStorage.getItem('parking_idx') || '') : ''));
+
+    useEffect(() => {
+        const keys = Object.keys(parkingLotData);
+        const map = { '1': keys[0], '2': keys[1], '3': keys[2] };
+        const val = parkingIdx || '1';
+        setSelectedParkingLot(map[val] || keys[0]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [parkingIdx]);
+
+    useEffect(() => {
+        const handler = (e) => {
+            const val = (e && e.detail) || (typeof localStorage !== 'undefined' ? (localStorage.getItem('parking_idx') || '') : '');
+            setParkingIdx(val);
+        };
+        window.addEventListener('parking-change', handler);
+        return () => window.removeEventListener('parking-change', handler);
+    }, []);
 
     const cctvFeeds = parkingLotData[selectedParkingLot];
 
@@ -60,19 +79,15 @@ const CCTVManagement = () => {
         }
     }, [modalSrc, currentTime]);
 
-    const handleParkingLotChange = (event) => {
-        setSelectedParkingLot(event.target.value);
-    };
+    // Selection control handled by ParkingControls via parking_idx
 
     return (
         <div className="cctv-management-container">
-            <div className="cctv-header">
+            <div className="header">
                 <h1>CCTV 실시간 영상</h1>
-                <select onChange={handleParkingLotChange} value={selectedParkingLot} className="parking-lot-selector">
-                    {Object.keys(parkingLotData).map(lotName => (
-                        <option key={lotName} value={lotName}>{lotName}</option>
-                    ))}
-                </select>
+                <div className="notif-tools">
+                    <ParkingControls />
+                </div>
             </div>
             <div className="cctv-grid-container">
                 {cctvFeeds.map((feed, index) => (

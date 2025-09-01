@@ -105,6 +105,14 @@
   background-color: #4a5568;
 }
 
+/* Sidebar-local placement for ParkingControls on main page */
+.sidebar-controls {
+  margin-bottom: 12px;
+}
+.sidebar-controls .parking-controls { width: 100%; justify-content: flex-start; }
+.sidebar-controls .parking-controls-inner { width: 100%; }
+.sidebar-controls select { width: 100%; }
+
 .notification-badge {
   background-color: #e53e3e; /* A brighter red */
   color: white;
@@ -170,6 +178,68 @@
   justify-content: center;
 }
 
+/* Allow the admin profile group to hold stacked controls */
+.top-bar-widgets > .profile-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 6px;
+  height: auto;
+}
+
+.district-parking {
+  display: flex;
+  gap: 8px;
+}
+
+.district-parking select {
+  background-color: #2b3341;
+  color: #fff;
+  border: 1px solid #4a5568;
+  border-radius: 8px;
+  height: 32px;
+  padding: 4px 8px;
+}
+
+/* In-page parking controls (like CCTV header style) */
+.parking-controls {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+/* In StatisticsBox, align controls to the left without affecting stats width */
+.statistics-widget .widget-header { justify-content: flex-start; }
+.statistics-widget .parking-controls { justify-content: flex-start; }
+.parking-controls-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #3b4252;
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+.parking-controls-inner select {
+  background-color: #2b3341;
+  color: #fff;
+  border: 1px solid #4a5568;
+  border-radius: 8px;
+  height: 32px;
+  padding: 4px 8px;
+}
+
+/* Notification header toolbar overrides */
+.notif-tools { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.notif-tools .parking-controls { width: auto; margin: 0; }
+.notif-tools .parking-controls-inner { background: transparent; padding: 0; }
+
+/* Statistics page header tools (align ParkingControls with title) */
+.stats-tools { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.stats-tools .parking-controls { width: auto; margin: 0; }
+.stats-tools .parking-controls-inner { background: transparent; padding: 0; }
+
 /* Top bell wrapper for absolute badge */
 .top-bell { position: relative; }
 .top-bell .notification-badge {
@@ -184,13 +254,43 @@
 }
 
 /* Stats Section */
-.stats-container {
-  /* Inherits .box-style */
-  flex-direction: row;
-  justify-content: space-around;
-  align-items: center;
+.statistics-widget { grid-area: stats; }
+.statistics-widget {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
   gap: 20px;
 }
+
+.widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.widget-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #E2E8F0;
+  margin: 0;
+}
+
+.stats-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+}
+
+.stats-header {
+  flex-basis: 100%;
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.stats-row { /* Optional if we later group stat boxes */ }
 
 .stat-box {
   flex: 1;
