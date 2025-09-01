@@ -113,7 +113,7 @@ const NotificationPage = () => {
                     const isUnread = !n.read_at;
                     const busy = !!marking[n.alert_idx];
                     return (
-                      <tr key={n.alert_idx}>
+                      <tr key={n.alert_idx} className={isUnread ? 'unread' : ''}>
                         <td>{n.alert_msg}</td>
                         <td>{n.alert_type || '-'}</td>
                         <td>{n.sent_at ? new Date(n.sent_at).toLocaleString() : '-'}</td>

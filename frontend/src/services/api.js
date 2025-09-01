@@ -199,6 +199,13 @@ export const getViolations = async ({
   return normalizeViolationsListResponse(raw, { page, limit });
 };
 
+// Update a single violation (e.g., { admin_status: '확인' } or { status: 'confirmed' })
+export const updateViolation = (id, body = {}) =>
+  request(`/violations/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+
 // Single violation detail
 export const getViolationById = (id) => request(`/violations/${encodeURIComponent(id)}`);
 

@@ -3,15 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import '../style/mainpage.css';
 import search from '../assets/search.png';
 import bell from '../assets/bell.png';
-import { getUnreadAlerts } from '../services/api';
+import { getUnreadAlerts, getAlerts } from '../services/api';
+import ParkingControls from './ParkingControls';
 
-const MainpageTop = () => {
+const MainpageTop = ({ showParkingControls = false }) => {
   const navigate = useNavigate();
   const adminName = localStorage.getItem('adminName') || localStorage.getItem('admin_id') || 'Admin';
 
   const [now, setNow] = useState(new Date());
   // No parking controls here; moved into page content
   const [unreadCount, setUnreadCount] = useState(0);
+  const [openBell, setOpenBell] = useState(false);
+  const [unreadList, setUnreadList] = useState([]);
+  const [loadingDrop, setLoadingDrop] = useState(false);
+  const bellRef = React.useRef(null);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
@@ -61,6 +66,32 @@ const MainpageTop = () => {
     return () => window.removeEventListener('alerts-updated', handler);
   }, []);
 
+  // Bell dropdown: toggle, fetch unread when opened, outside click/Esc to close
+  useEffect(() => {
+    if (!openBell) return;
+    let alive = true;
+    const adminId = localStorage.getItem('admin_id');
+    if (!adminId) return;
+    setLoadingDrop(true);
+    getAlerts(adminId, { status: 'unread' })
+      .then((rows) => {
+        if (alive) setUnreadList(Array.isArray(rows) ? rows.slice(0, 10) : []);
+      })
+      .finally(() => alive && setLoadingDrop(false));
+    const onDocClick = (e) => {
+      const el = bellRef.current;
+      if (el && !el.contains(e.target)) setOpenBell(false);
+    };
+    const onKey = (e) => { if (e.key === 'Escape') setOpenBell(false); };
+    document.addEventListener('mousedown', onDocClick);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      alive = false;
+      document.removeEventListener('mousedown', onDocClick);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [openBell]);
+
   const handleLogout = () => {
     try {
       localStorage.removeItem('token');
@@ -87,7 +118,7 @@ const MainpageTop = () => {
   };
 
   return (
-    <div className='Top_box box-style'>
+    <div className={`Top_box box-style${showParkingControls ? ' has-controls' : ''}`}>
       <div className="search-container">
         <img src={search} alt="Search" className="search-icon" />
         <input
@@ -103,20 +134,51 @@ const MainpageTop = () => {
         <div className='manager'>
           Admin: {adminName}
         </div>
-        <button
-          type="button"
-          className='Noti top-bell'
-          onClick={() => navigate('/notifications')}
-          title="Notifications"
-          style={{ cursor: 'pointer', border: 'none' }}
-        >
-          <img src={bell} alt="Notifications" style={{ width: '20px' }} />
-          {unreadCount > 0 && (
-            <span className="notification-badge" aria-label={`${unreadCount} unread notifications`}>
-              {unreadCount}
-            </span>
+        {showParkingControls && (
+          <div className="profile-group">
+            <ParkingControls />
+          </div>
+        )}
+        <div className='top-bell' ref={bellRef}>
+          <button
+            type="button"
+            className='Noti'
+            onClick={() => setOpenBell((v) => !v)}
+            title="Notifications"
+            style={{ cursor: 'pointer', border: 'none', background: 'transparent' }}
+            aria-expanded={openBell}
+            aria-haspopup="listbox"
+          >
+            <img src={bell} alt="Notifications" style={{ width: '20px' }} />
+            {unreadCount > 0 && (
+              <span className="notification-badge" aria-label={`${unreadCount} unread notifications`}>
+                {unreadCount}
+              </span>
+            )}
+          </button>
+          {openBell && (
+            <div className="bell-dropdown" role="listbox" aria-label="Unread notifications">
+              <div className="bell-dropdown-header">Unread notifications</div>
+              {loadingDrop ? (
+                <div className="bell-dropdown-empty">Loading…</div>
+              ) : unreadList.length === 0 ? (
+                <div className="bell-dropdown-empty">No unread notifications</div>
+              ) : (
+                <ul className="bell-dropdown-list">
+                  {unreadList.map((n) => (
+                    <li key={n.alert_idx} className="bell-dropdown-item">
+                      <div className="bell-item-title">{n.alert_msg || 'Notification'}</div>
+                      <div className="bell-item-meta">{n.sent_at ? new Date(n.sent_at).toLocaleString() : ''}</div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="bell-dropdown-footer">
+                <button className="all-btn" onClick={() => navigate('/notifications')}>View all</button>
+              </div>
+            </div>
           )}
-        </button>
+        </div>
         <div className='login_out'>
           <button onClick={handleLogout} className='logout-btn'>Logout</button>
         </div>

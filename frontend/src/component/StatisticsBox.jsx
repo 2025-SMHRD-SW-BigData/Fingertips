@@ -4,7 +4,6 @@ import disabled from "../assets/disabled.png";
 import parking from "../assets/parking.png";
 import notcar from "../assets/notcar.png";
 import { getDashboardSummary } from '../services/api';
-import ParkingControls from './ParkingControls';
 
 const StatBox = ({ icon, title, value, total, valueColor, loading }) => {
   let districtName = '';
@@ -82,9 +81,6 @@ const StatisticsBox = () => {
 
   return (
     <div className="statistics-widget box-style">
-      <div className="widget-header">
-      <ParkingControls />
-      </div>
       <div className="stats-container">
         <StatBox icon={disabled} title="장애인 잔여" value={disabledAvail} total={d.total} valueColor="#68D391" loading={loading} />
         <StatBox icon={parking} title="일반 잔여" value={generalAvail} total={g.total} valueColor="#63B3ED" loading={loading} />

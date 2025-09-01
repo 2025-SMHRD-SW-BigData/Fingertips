@@ -37,6 +37,24 @@
   margin-bottom: 15px;
 }
 
+/* Line chart for date series */
+.line-chart {
+  width: 100%;
+  height: 220px;
+  border-left: 2px solid #4a5568;
+  border-bottom: 2px solid #4a5568;
+  background: transparent;
+}
+.line-path {
+  fill: none;
+  stroke: #63B3ED; /* blue tone */
+  stroke-width: 2;
+}
+.line-point circle {
+  fill: #E53E3E; /* red markers */
+  cursor: pointer;
+}
+
 .bar-chart {
   display: flex;
   justify-content: space-around;

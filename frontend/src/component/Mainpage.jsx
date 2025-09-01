@@ -13,7 +13,7 @@ const Mainpage = () => {
     <div className="Mainpage_box">
       <div className="page-layout">
         <Logo></Logo>
-        <MainpageTop />
+        <MainpageTop showParkingControls />
         <Sidebar />
 
           <StatisticsBox />

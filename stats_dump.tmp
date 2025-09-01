@@ -174,7 +174,7 @@ const StatisticsPage = () => {
         <Sidebar />
         <div className="content-area">
           <div className="header">
-            <h1>통계 분석</h1>
+            <h1>?�계 분석</h1>
             <div className="stats-tools">
               <ParkingControls />
             </div>
@@ -188,16 +188,16 @@ const StatisticsPage = () => {
               <label style={{ margin: '0 8px' }}>To:</label>
               <input type="date" name="to" value={filters.to} onChange={handleFilterChange} />
               <select name="place" value={filters.place} onChange={handleFilterChange}>
-                <option value="">장소 선택</option>
+                <option value="">?�소 ?�택</option>
                 <option value="entrance">출구</option>
-                <option value="parking_lot">주차장</option>
-                <option value="disabled_area">장애인구역</option>
+                <option value="parking_lot">주차??/option>
+                <option value="disabled_area">?�애?�구??/option>
               </select>
               <select name="type" value={filters.type} onChange={handleFilterChange}>
-                <option value="">위반 유형 선택</option>
-                <option value="illegal_parking">불법 주정차</option>
+                <option value="">?�반 ?�형 ?�택</option>
+                <option value="illegal_parking">불법 주정�?/option>
                 <option value="speeding">과속</option>
-                <option value="signal_violation">신호 위반</option>
+                <option value="signal_violation">?�호 ?�반</option>
               </select>
             </div>
             <div className="charts">
@@ -213,7 +213,7 @@ const StatisticsPage = () => {
                   setTtType({ visible: false, x: 0, y: 0, content: null, pinned: false });
                 }}
               >
-                <h2>위반 유형별</h2>
+                <h2>?�반 ?�형�?/h2>
                 {byType.loading ? (
                   <div>Loading...</div>
                 ) : byType.error ? (
@@ -272,7 +272,7 @@ const StatisticsPage = () => {
                   setTtLoc({ visible: false, x: 0, y: 0, content: null, pinned: false });
                 }}
               >
-                <h2>장소별</h2>
+                <h2>?�소�?/h2>
                 {byLocation.loading ? (
                   <div>Loading...</div>
                 ) : byLocation.error ? (
@@ -360,7 +360,7 @@ const StatisticsPage = () => {
                 <Tooltip visible={ttLoc.visible} x={ttLoc.x} y={ttLoc.y}>{ttLoc.content}</Tooltip>
               </div>
               <div className="chart">
-                <h2>{filters.date ? '시간별' : '일자별'}</h2>
+                <h2>{filters.date ? '?�간�? : '?�자�?}</h2>
                 {(() => {
                   const loading = byDate.loading;
                   const error = byDate.error;
@@ -369,61 +369,53 @@ const StatisticsPage = () => {
                   if (error) return <div>Error: {error}</div>;
                   if (!data.length) return <div>No data.</div>;
                   const max = maxVal(data);
-                  const W = 600, H = 200, P = 20; // width, height, padding
-                  const toX = (i) => {
-                    const n = Math.max(1, data.length - 1);
-                    return P + (i * (W - 2 * P)) / n;
-                  };
-                  const toY = (v) => {
-                    const ratio = max ? v / max : 0;
-                    return H - P - ratio * (H - 2 * P);
-                  };
-                  const points = data.map((d, i) => `${toX(i)},${toY(d.value)}`).join(' ');
                   return (
-                    <svg
-                      className="line-chart"
-                      viewBox={`0 0 ${W} ${H}`}
+                    <div
+                      className="bar-chart"
                       onMouseMove={(e) => {
                         if (!ttDate.visible) return;
                         const rect = e.currentTarget.getBoundingClientRect();
                         setTtDate((s) => ({ ...s, x: e.clientX - rect.left, y: e.clientY - rect.top }));
                       }}
-                      onClick={() => setTtDate({ visible: false, x: 0, y: 0, content: null, pinned: false })}
+                      onClick={(e) => {
+                        if (e.target.closest('.bar')) return;
+                        setTtDate({ visible: false, x: 0, y: 0, content: null, pinned: false });
+                      }}
                     >
-                      <polyline className="line-path" points={points} />
-                      {data.map((d, i) => (
-                        <g key={i} className="line-point">
-                          <circle
-                            cx={toX(i)}
-                            cy={toY(d.value)}
-                            r="3.5"
-                            onMouseEnter={(e) => {
-                              const total = sumVal(data);
-                              const rect = e.currentTarget.ownerSVGElement.getBoundingClientRect();
-                              setTtDate({
-                                visible: true,
-                                x: e.clientX - rect.left,
-                                y: e.clientY - rect.top,
-                                content: (
-                                  <div>
-                                    <div><strong>{d.label}</strong></div>
-                                    <div>건수: {d.value.toLocaleString()}</div>
-                                    <div>비율: {total ? Math.round((d.value / total) * 100) : 0}%</div>
-                                  </div>
-                                ),
-                                pinned: false,
-                              });
-                            }}
-                            onMouseLeave={() => setTtDate((s) => (s.pinned ? s : { ...s, visible: false }))}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setTtDate((s) => ({ ...s, pinned: !s.pinned, visible: true }));
-                            }}
-                          />
-                          <text x={toX(i)} y={H - 4} textAnchor="middle" fontSize="10" fill="#cbd5e1">{d.label}</text>
-                        </g>
+                      {data.map((d, idx) => (
+                        <div
+                          key={idx}
+                          className="bar"
+                          style={{ height: `${Math.round((d.value / max) * 100)}%`, width: '20px' }}
+                          onMouseEnter={(e) => {
+                            const total = sumVal(data);
+                            const chartEl = e.currentTarget.closest('.chart');
+                            const rect = (chartEl && chartEl.getBoundingClientRect()) || e.currentTarget.getBoundingClientRect();
+                            setTtDate({
+                              visible: true,
+                              x: e.clientX - rect.left,
+                              y: e.clientY - rect.top,
+                              content: (
+                                <div>
+                                  <div><strong>{d.label}</strong></div>
+                                  <div>건수: {d.value.toLocaleString()}</div>
+                                  <div>비율: {total ? Math.round((d.value / total) * 100) : 0}%</div>
+                                </div>
+                              ),
+                              pinned: false,
+                            });
+                          }}
+                          onMouseLeave={() => setTtDate((s) => (s.pinned ? s : { ...s, visible: false }))}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setTtDate((s) => ({ ...s, pinned: !s.pinned, visible: true }));
+                          }}
+                        >
+                          <div className="bar-value">{d.value}</div>
+                          <span>{d.label}</span>
+                        </div>
                       ))}
-                    </svg>
+                    </div>
                   );
                 })()}
                 <Tooltip visible={ttDate.visible} x={ttDate.x} y={ttDate.y}>{ttDate.content}</Tooltip>

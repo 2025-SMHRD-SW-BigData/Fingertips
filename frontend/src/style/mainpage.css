@@ -136,7 +136,7 @@
 
 .search-container {
   position: relative;
-  width: 50%;
+  width: 30%;
 }
 
 .serch {
@@ -187,6 +187,12 @@
   gap: 6px;
   height: auto;
 }
+
+/* Make space for parking controls on main top bar */
+.Top_box.has-controls .search-container { width: 30%; }
+.top-bar-widgets > .profile-group { background: transparent; padding: 0; }
+.Top_box.has-controls .parking-controls { width: auto; margin: 0; }
+.Top_box.has-controls .parking-controls-inner { background: transparent; padding: 0; }
 
 .district-parking {
   display: flex;
@@ -252,6 +258,40 @@
   padding: 0 4px;
   border-radius: 999px;
 }
+
+/* Bell dropdown */
+.bell-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 320px;
+  background: #2b3341;
+  color: #fff;
+  border: 1px solid #4a5568;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  z-index: 1500;
+}
+.bell-dropdown-header {
+  padding: 10px 12px;
+  border-bottom: 1px solid #3b4457;
+  font-weight: 600;
+}
+.bell-dropdown-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+.bell-dropdown-item {
+  padding: 10px 12px;
+  border-bottom: 1px solid #3b4457;
+}
+.bell-item-title { font-size: 13px; }
+.bell-item-meta { font-size: 11px; color: #9aa0a6; margin-top: 2px; }
+.bell-dropdown-empty { padding: 12px; color: #cbd5e1; }
+.bell-dropdown-footer { padding: 10px 12px; display: flex; justify-content: flex-end; }
 
 /* Stats Section */
 .statistics-widget { grid-area: stats; }
@@ -432,6 +472,9 @@
   text-align: left;
   border-bottom: 1px solid #4a5568;
 }
+
+/* Bold style for unread notifications */
+.notification-list tr.unread td { font-weight: 700; }
 
 .violation-list th, .notification-list th {
   color: #c9d1d9;
