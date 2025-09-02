@@ -484,6 +484,149 @@
 .violation-list tr:last-child td, .notification-list tr:last-child td {
   border-bottom: none;
 }
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-card {
+  background: #2B3341;
+  color: white;
+  width: 480px;
+  max-width: 92vw;
+  border-radius: 16px;
+  border: 1px solid #4a5568;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  overflow: hidden;
+}
+
+.modal-card .modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #4a5568;
+}
+
+.modal-card .modal-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.modal-card .modal-body {
+  padding: 16px 20px;
+}
+
+.modal-card .modal-footer {
+  padding: 12px 20px;
+  border-top: 1px solid #4a5568;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.modal-options {
+  display: flex;
+  align-items: center;
+  gap: 24px; 
+  padding: 16px 0;
+  margin-bottom: 16px; 
+}
+
+.modal-options label {
+  display: flex;         /* 이것이 핵심. 내부 요소들을 flexbox로 정렬 */
+  align-items: center;   /* 수직 중앙 정렬. 글자와 버튼의 높이를 맞춰줌 */
+  gap: 8px;              /* 버튼과 글자 사이의 간격 */
+  font-size: 16px;
+  color: #E2E8F0;      /* 글자 색 (어두운 배경에 맞게) */
+  cursor: pointer;       /* 마우스를 올리면 손가락 모양으로 */
+  user-select: none;     /* 텍스트 드래그 방지 */
+}
+
+.modal-options input[type="radio"] {
+  appearance: none; /* 브라우저 기본 스타일 제거 */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  margin: 0;
+  padding: 0;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  position: absolute; /* 레이아웃에서 완전히 제거 */
+}
+
+.modal-textarea {
+  width: 100%;
+  background-color: #3b4252;
+  color: white;
+  border: 1px solid #4a5568;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 14px;
+  min-height: 72px;
+}
+
+
+.modal-options label::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%; 
+  
+
+  background-color: #A0AEC0; 
+  
+}
+
+
+.modal-options input[type="radio"]:checked + label::before {
+
+  background-color: transparent; 
+  border: 2px solid #3B82F6;     
+  box-shadow: 0 0 0 2px #1A202C inset; 
+}
+
+/* 개별 옵션 그룹 (input + label) */
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* 버튼과 텍스트 사이 간격 */
+}
+
+.radio-option label {
+  color: #CBD5E0; /* 약간 더 밝은 회색으로 가독성 확보 */
+  font-size: 16px;
+  cursor: pointer;
+  user-select: none; /* 텍스트 드래그 방지 */
+}
+
+/* 커스텀 라디오 버튼의 기본 스타일 */
+.radio-option input[type="radio"] {
+  display: none;
+}
+
+/* label 앞에 가상 요소를 커스텀 버튼으로 만든다 */
+.radio-option label::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 8px; /* 텍스트와의 간격 */
+  border-radius: 50%;
+  background-color: #718096; /* 기본 상태 */
+  vertical-align: middle; /* 텍스트와 수직 정렬 */
+  
+}
+
+/* input이 checked 상태일 때, 그 바로 뒤에 오는(+) label의 ::before 스타일을 바꾼다 */
+.radio-option input[type="radio"]:checked + label::before {
+  background-color: #4299E1; /* 선택 상태 */
+  border: 2px solid #2b3341;
+  box-shadow: 0 0 0 2px #4299E1;
+}
 
 
 .parking-select select {
@@ -515,3 +658,26 @@
   border-color: #63b3ed;
   background-color: #4a5568;
 }
+
+/* Search suggestions */
+.search-container { position: relative; }
+.search-suggest {
+  position: absolute;
+  left: 0; right: 0; top: calc(100% + 6px);
+  background: #2B3341;
+  color: white;
+  border-radius: 12px;
+  border: 1px solid #4a5568;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  overflow: hidden;
+  z-index: 1500;
+}
+.search-suggest-header { padding: 8px 12px; border-bottom: 1px solid #4a5568; font-size: 12px; color: #c9d1d9; }
+.search-suggest-empty { padding: 12px; color: #c9d1d9; font-size: 13px; }
+.search-suggest-list { list-style: none; margin: 0; padding: 0; max-height: 260px; overflow-y: auto; }
+.search-suggest-item { border-bottom: 1px solid #3b4457; }
+.search-suggest-item:last-child { border-bottom: none; }
+.search-suggest-item button { width: 100%; display: flex; justify-content: space-between; background: transparent; color: inherit; border: none; text-align: left; padding: 10px 12px; cursor: pointer; }
+.search-suggest-item button:hover { background: #3A4460; }
+.suggest-main { font-weight: 600; }
+.suggest-sub { color: #c9d1d9; font-size: 12px; }

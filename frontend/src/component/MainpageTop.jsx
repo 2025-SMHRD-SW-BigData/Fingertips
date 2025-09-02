@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import '../style/mainpage.css';
 import search from '../assets/search.png';
 import bell from '../assets/bell.png';
-import { getUnreadAlerts, getAlerts } from '../services/api';
+import { getUnreadAlerts, getAlerts, getViolations } from '../services/api';
 import ParkingControls from './ParkingControls';
 
 const MainpageTop = ({ showParkingControls = false }) => {
@@ -17,6 +17,14 @@ const MainpageTop = ({ showParkingControls = false }) => {
   const [unreadList, setUnreadList] = useState([]);
   const [loadingDrop, setLoadingDrop] = useState(false);
   const bellRef = React.useRef(null);
+
+  // Search state
+  const [q, setQ] = useState('');
+  const [openSearch, setOpenSearch] = useState(false);
+  const [suggests, setSuggests] = useState([]);
+  const [loadingSuggest, setLoadingSuggest] = useState(false);
+  const searchRef = React.useRef(null);
+  const debounceRef = React.useRef(0);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
@@ -63,7 +71,15 @@ const MainpageTop = ({ showParkingControls = false }) => {
         .catch(() => setUnreadCount(0));
     };
     window.addEventListener('alerts-updated', handler);
-    return () => window.removeEventListener('alerts-updated', handler);
+    const onParking = () => handler();
+    const onDistrict = () => handler();
+    window.addEventListener('parking-change', onParking);
+    window.addEventListener('district-change', onDistrict);
+    return () => {
+      window.removeEventListener('alerts-updated', handler);
+      window.removeEventListener('parking-change', onParking);
+      window.removeEventListener('district-change', onDistrict);
+    };
   }, []);
 
   // Bell dropdown: toggle, fetch unread when opened, outside click/Esc to close
@@ -92,6 +108,50 @@ const MainpageTop = ({ showParkingControls = false }) => {
     };
   }, [openBell]);
 
+  // Search: debounce suggestions and handle outside click/Esc
+  useEffect(() => {
+    const text = (q || '').trim();
+    if (text.length < 2) {
+      setSuggests([]);
+      setOpenSearch(false);
+      setLoadingSuggest(false);
+      return;
+    }
+    setLoadingSuggest(true);
+    const token = Date.now();
+    debounceRef.current = token;
+    const t = setTimeout(async () => {
+      try {
+        const { items } = await getViolations({ page: 1, limit: 5, search: text });
+        if (debounceRef.current !== token) return; // stale
+        setSuggests(Array.isArray(items) ? items : []);
+        setOpenSearch(true);
+      } catch (_) {
+        if (debounceRef.current !== token) return;
+        setSuggests([]);
+        setOpenSearch(true);
+      } finally {
+        if (debounceRef.current === token) setLoadingSuggest(false);
+      }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [q]);
+
+  useEffect(() => {
+    if (!openSearch) return;
+    const onDoc = (e) => {
+      const el = searchRef.current;
+      if (el && !el.contains(e.target)) setOpenSearch(false);
+    };
+    const onKey = (e) => { if (e.key === 'Escape') setOpenSearch(false); };
+    document.addEventListener('mousedown', onDoc);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [openSearch]);
+
   const handleLogout = () => {
     try {
       localStorage.removeItem('token');
@@ -119,13 +179,53 @@ const MainpageTop = ({ showParkingControls = false }) => {
 
   return (
     <div className={`Top_box box-style${showParkingControls ? ' has-controls' : ''}`}>
-      <div className="search-container">
+      <div className="search-container" ref={searchRef}>
         <img src={search} alt="Search" className="search-icon" />
         <input
           type="text"
-          placeholder="Search by plate / zone / camera name"
+          placeholder="차량번호 검색"
           className="serch"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          onFocus={() => { if ((q || '').trim().length >= 2) setOpenSearch(true); }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              const kw = (q || '').trim();
+              if (kw.length >= 1) {
+                setOpenSearch(false);
+                navigate(`/violations?search=${encodeURIComponent(kw)}`);
+              }
+            }
+          }}
         />
+        {openSearch && (
+          <div className="search-suggest">
+            <div className="search-suggest-header">Search results</div>
+            {loadingSuggest ? (
+              <div className="search-suggest-empty">Loading…</div>
+            ) : suggests.length === 0 ? (
+              <div className="search-suggest-empty">No matches</div>
+            ) : (
+              <ul className="search-suggest-list">
+                {suggests.map((it) => (
+                  <li key={it.violation_idx} className="search-suggest-item">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const kw = it.ve_number || it.parking_loc || (q || '').trim();
+                        setOpenSearch(false);
+                        navigate(`/violations?search=${encodeURIComponent(kw)}`);
+                      }}
+                    >
+                      <span className="suggest-main">{it.ve_number || 'Vehicle'}</span>
+                      <span className="suggest-sub">{it.parking_loc || it.violation_type || ''}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </div>
       <div className="top-bar-widgets">
         <div className='today'>
@@ -158,11 +258,11 @@ const MainpageTop = ({ showParkingControls = false }) => {
           </button>
           {openBell && (
             <div className="bell-dropdown" role="listbox" aria-label="Unread notifications">
-              <div className="bell-dropdown-header">Unread notifications</div>
+              <div className="bell-dropdown-header">미확인 알림</div>
               {loadingDrop ? (
                 <div className="bell-dropdown-empty">Loading…</div>
               ) : unreadList.length === 0 ? (
-                <div className="bell-dropdown-empty">No unread notifications</div>
+                <div className="bell-dropdown-empty">미확인 알림이 없습니다.</div>
               ) : (
                 <ul className="bell-dropdown-list">
                   {unreadList.map((n) => (

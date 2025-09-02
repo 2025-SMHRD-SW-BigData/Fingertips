@@ -3,13 +3,17 @@ import { getParkingLogs } from '../services/api';
 import Sidebar from '../component/Sidebar';
 import MainpageTop from '../component/MainpageTop';
 import Logo from '../component/Logo';
-import '../style/mainpage.css'; // Use the main stylesheet
+import ParkingControls from '../component/ParkingControls';
+import '../style/mainpage.css';
 
 const formatTime = (iso) => {
   if (!iso) return '-';
   try {
     const d = new Date(iso);
-    return d.toLocaleString([], { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleString([], {
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit'
+    });
   } catch {
     return '-';
   }
@@ -19,11 +23,21 @@ const InOutPage = () => {
   const [rows, setRows] = useState([]);
 
   useEffect(() => {
-    getParkingLogs()
-      .then((data) => {
-        setRows(Array.isArray(data) ? data : []);
-      })
-      .catch((err) => console.error('Failed to load parking logs', err));
+    let mounted = true;
+    const load = () => {
+      getParkingLogs()
+        .then((data) => {
+          if (mounted) setRows(Array.isArray(data) ? data : []);
+        })
+        .catch((err) => console.error('Failed to load parking logs', err));
+    };
+    load();
+    const handler = () => load();
+    window.addEventListener('parking-change', handler);
+    return () => {
+      mounted = false;
+      window.removeEventListener('parking-change', handler);
+    };
   }, []);
 
   return (
@@ -33,14 +47,19 @@ const InOutPage = () => {
         <MainpageTop />
         <Sidebar />
         <div className="content-area">
-          <h1>입·출차 기록</h1>
+          <div className="header">
+            <h1>입·출차 기록</h1>
+            <div className="notif-tools">
+              <ParkingControls />
+            </div>
+          </div>
           <table className="data-table">
             <colgroup>
-              <col style={{width: "25%"}} />
-              <col style={{width: "20%"}} />
-              <col style={{width: "20%"}} />
-              <col style={{width: "20%"}} />
-              <col style={{width: "15%"}} />
+              <col style={{ width: '25%' }} />
+              <col style={{ width: '20%' }} />
+              <col style={{ width: '20%' }} />
+              <col style={{ width: '20%' }} />
+              <col style={{ width: '15%' }} />
             </colgroup>
             <thead>
               <tr>
@@ -77,3 +96,4 @@ const InOutPage = () => {
 };
 
 export default InOutPage;
+

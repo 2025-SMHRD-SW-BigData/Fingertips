@@ -131,7 +131,15 @@ export const updateAlert = (id, body = {}) =>
   });
 
 export const getViolationsTotal = async () => {
-  const resp = await request('/violations?limit=1');
+  const idx = getSelectedParkingIdx();
+  const query = (function () {
+    const qp = new URLSearchParams();
+    qp.set('limit', '1');
+    qp.set('status', 'pending');
+    if (idx) qp.set('parking_idx', String(idx));
+    return `?${qp.toString()}`;
+  })();
+  const resp = await request(`/violations${query}`);
   return resp?.pagination?.totalItems ?? 0;
 };
 
@@ -189,12 +197,14 @@ export const getViolations = async ({
   from,
   to,
   keyword,
+  search,
   type,
   status,
   parkingIdx,
 } = {}) => {
   const idx = parkingIdx ?? getSelectedParkingIdx();
-  const query = buildQuery({ page, limit, sort, from, to, keyword, type, status, parking_idx: idx });
+  // Map keyword -> search for backend compatibility
+  const query = buildQuery({ page, limit, sort, from, to, search: search ?? keyword, type, status, parking_idx: idx });
   const raw = await request(`/violations${query}`);
   return normalizeViolationsListResponse(raw, { page, limit });
 };
@@ -204,6 +214,20 @@ export const updateViolation = (id, body = {}) =>
   request(`/violations/${encodeURIComponent(id)}`, {
     method: 'PATCH',
     body: JSON.stringify(body),
+  });
+
+// Mark all alerts for a violation as read for the given admin
+export const markAlertsReadByViolation = (violationId, { adminId }) =>
+  request(`/violations/${encodeURIComponent(violationId)}/alerts/read`, {
+    method: 'PATCH',
+    body: JSON.stringify({ admin_id: adminId }),
+  });
+
+// Record a broadcast action related to a violation
+export const broadcastViolation = (violationId, { message, note, adminId } = {}) =>
+  request(`/violations/${encodeURIComponent(violationId)}/broadcast`, {
+    method: 'POST',
+    body: JSON.stringify({ message, note, admin_id: adminId }),
   });
 
 // Single violation detail
@@ -259,6 +283,8 @@ export default {
   getViolationsTotal,
   getViolations,
   getViolationById,
+  markAlertsReadByViolation,
+  broadcastViolation,
   getStatsByType,
   getStatsByDate,
   getStatsByLocation,

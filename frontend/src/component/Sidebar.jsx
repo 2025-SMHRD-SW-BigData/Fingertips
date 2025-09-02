@@ -46,10 +46,16 @@ const Sidebar = () => {
     };
     load();
     const onAlerts = () => load();
+    const onParking = () => load();
+    const onDistrict = () => load();
     window.addEventListener('alerts-updated', onAlerts);
+    window.addEventListener('parking-change', onParking);
+    window.addEventListener('district-change', onDistrict);
     return () => {
       mounted = false;
       window.removeEventListener('alerts-updated', onAlerts);
+      window.removeEventListener('parking-change', onParking);
+      window.removeEventListener('district-change', onDistrict);
     };
   }, []);
 
@@ -79,4 +85,3 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
-

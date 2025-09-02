@@ -10,7 +10,7 @@ function toInt(val, fallback) {
 }
 
 // GET /api/violations
-// Query: page, limit, search, date (YYYY-MM-DD)
+// Query: page, limit, search, date (YYYY-MM-DD), parking_idx
 router.get('/', async (req, res, next) => {
   try {
     const page = toInt(req.query.page, 1);
@@ -35,6 +35,12 @@ router.get('/', async (req, res, next) => {
       where.push('d.parking_idx = ?');
       params.push(parkingIdx);
     }
+    const status = (req.query.status || '').toString().trim().toLowerCase();
+    if (status === 'pending' || status === 'unprocessed') {
+      where.push("(v.admin_status IS NULL OR v.admin_status = '')");
+    } else if (status === 'processed') {
+      where.push("(v.admin_status IS NOT NULL AND v.admin_status <> '')");
+    }
 
     const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
@@ -48,12 +54,13 @@ router.get('/', async (req, res, next) => {
       params
     );
     const totalItems = countRows[0]?.cnt || 0;
-    const totalPages = Math.ceil(totalItems / limit) || 1;
 
     const data = await db.query(
       `SELECT v.violation_idx,
               v.violation_type,
               v.created_at AS violation_date,
+              v.admin_status,
+              v.admin_confirmed_at,
               d.ve_number,
               p.PARKING_LOC AS parking_loc,
               c.camera_loc
@@ -71,7 +78,7 @@ router.get('/', async (req, res, next) => {
       data,
       pagination: {
         totalItems,
-        totalPages,
+        totalPages: Math.max(1, Math.ceil((totalItems || 0) / limit)),
         currentPage: page,
       },
     });
@@ -91,6 +98,8 @@ router.get('/:id', async (req, res, next) => {
       `SELECT v.violation_idx,
               v.violation_type,
               v.created_at AS violation_date,
+              v.admin_status,
+              v.admin_confirmed_at,
               d.ve_number,
               p.PARKING_LOC AS parking_loc,
               c.camera_loc,
@@ -104,32 +113,52 @@ router.get('/:id', async (req, res, next) => {
         LIMIT 1`,
       [id]
     );
-    router.patch('/:id', async (req, res, next) => {
+    if (!rows.length) {
+      return res.status(404).json({ message: '해당 위반 내역을 찾을 수 없습니다.' });
+    }
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('Error in GET /api/violations/:id', err);
+    next(err);
+  }
+});
+
+// PATCH /api/violations/:id
+// Allowed fields: violation_type, admin_status, admin_confirmed_at, admin_confirmed_by, admin_content
+router.patch('/:id', async (req, res, next) => {
   try {
     const id = parseInt(req.params.id, 10);
     if (!Number.isFinite(id)) {
-      return res.status(400).json({ message: '잘못된 ID 형식입니다.' });
+      return res.status(400).json({ message: '잘못된 ID 형식입니다' });
     }
 
-    // 업데이트할 수 있는 필드를 미리 정해두는 게 보안상 안전
-    const allowedUpdates = ['violation_type'];
-    const updates = {}; // 실제 업데이트할 필드와 값
+    const allowedUpdates = [
+      'violation_type', 
+      'admin_status', 
+      'admin_confirmed_at', 
+      'admin_confirmed_by'
+    ];
+    const updates = {};
     const body = req.body;
 
-    // 요청 본문(body)에 있는 키 중에서 허용된 필드만 updates 객체에 추가
     for (const key in body) {
       if (allowedUpdates.includes(key)) {
-        updates[key] = body[key];
+        let value = body[key];
+        
+        // 변경점 2: 'admin_confirmed_at' 필드인 경우, DB 포맷으로 변환
+        if (key === 'admin_confirmed_at' && value) {
+          // 'YYYY-MM-DDTHH:mm:ss.sssZ' -> 'YYYY-MM-DD HH:mm:ss'
+          value = value.slice(0, 19).replace('T', ' ');
+        }
+        
+        updates[key] = value;
       }
     }
 
-    // 업데이트할 내용이 없으면 400 에러
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({ message: '업데이트할 유효한 필드가 없습니다.' });
     }
 
-    // 동적으로 UPDATE 쿼리의 SET 부분을 생성
-    // 예: { violation_type: 'some_value' } -> "violation_type = ?"
     const setClauses = Object.keys(updates).map(key => `${key} = ?`).join(', ');
     const params = [...Object.values(updates), id];
 
@@ -137,13 +166,10 @@ router.get('/:id', async (req, res, next) => {
     
     const result = await db.query(sql, params);
 
-    // affectedRows는 쿼리로 인해 변경된 행의 수를 나타냄.
-    // 0이면 해당 ID의 데이터가 없다는 뜻.
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: '해당 위반 내역을 찾을 수 없습니다.' });
     }
 
-    // 성공적으로 업데이트되었음을 알림
     res.json({ message: '위반 내역이 성공적으로 업데이트되었습니다.', updatedId: id });
 
   } catch (err) {
@@ -151,13 +177,45 @@ router.get('/:id', async (req, res, next) => {
     next(err);
   }
 });
+// PATCH /api/violations/:id/alerts/read
+// Marks related alerts as read for a given admin_id
+router.patch('/:id/alerts/read', async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isFinite(id)) return res.status(400).json({ message: '잘못된 ID' });
+    const adminId = (req.body?.admin_id || '').toString().trim();
+    if (!adminId) return res.status(400).json({ message: 'admin_id가 필요합니다.' });
 
-    if (!rows.length) {
-      return res.status(404).json({ message: '해당 위반 내역을 찾을 수 없습니다.' });
-    }
-    res.json(rows[0]);
+    await db.query(
+      `UPDATE tb_alert SET read_at = NOW()
+         WHERE violation_idx = ? AND admin_id = ? AND read_at IS NULL`,
+      [id, adminId]
+    );
+    res.json({ message: '관련 알림을 읽음 처리했습니다.' });
   } catch (err) {
-    console.error('Error in GET /api/violations/:id', err);
+    console.error('Error in PATCH /api/violations/:id/alerts/read', err);
+    next(err);
+  }
+});
+
+// POST /api/violations/:id/broadcast
+// Records a broadcast intent; integration can be added later
+router.post('/:id/broadcast', async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isFinite(id)) return res.status(400).json({ message: '잘못된 ID' });
+    const adminId = (req.body?.admin_id || '').toString().trim() || null;
+    const message = (req.body?.message || '').toString().trim() || '계도방송 요청';
+    const note = (req.body?.note || '').toString().trim() || null;
+
+    await db.query(
+      `INSERT INTO tb_alert (violation_idx, alert_type, alert_msg, sent_at, is_success, admin_id, admin_status, admin_content, processed_at)
+       VALUES (?, 'broadcast', ?, NOW(), ?, ?, '계도방송', ?, NOW())`,
+      [id, message, 1, adminId, note]
+    );
+    res.json({ message: '계도방송을 기록했습니다.' });
+  } catch (err) {
+    console.error('Error in POST /api/violations/:id/broadcast', err);
     next(err);
   }
 });
