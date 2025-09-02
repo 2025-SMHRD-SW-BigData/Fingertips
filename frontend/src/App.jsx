@@ -9,6 +9,7 @@ import NotificationPage from './pages/NotificationPage';
 import MyPage from './pages/MyPage';
 import StatisticsPage from './pages/StatisticsPage';
 import SettingsPage from './pages/SettingsPage';
+import InOutPage from './pages/InOutPage';
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem('token');
@@ -70,6 +71,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <SettingsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/inout"
+        element={
+          <ProtectedRoute>
+            <InOutPage />
           </ProtectedRoute>
         }
       />

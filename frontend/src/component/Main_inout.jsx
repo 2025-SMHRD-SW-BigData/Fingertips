@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import "../style/mainpage.css";
 import { getParkingLogs } from '../services/api';
 
@@ -37,7 +38,7 @@ const Main_inout = () => {
     <div className='inout box-style'>
       <div className="header">
         <h3>입·출차 기록</h3>
-        <button className="all-btn">전체 보기</button>
+        <Link to="/inout" className="all-btn">전체 보기</Link>
       </div>
       <table className="data-table">
         <colgroup>
