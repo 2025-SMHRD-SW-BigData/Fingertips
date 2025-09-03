@@ -18,6 +18,9 @@ const ViolationPage = () => {
   const [error, setError] = useState('');
   const [marking, setMarking] = useState({});
   const location = useLocation();
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [pageMeta, setPageMeta] = useState({ totalItems: 0, pageSize: 20, currentPage: 1, totalPages: 1 });
   const [searchQuery, setSearchQuery] = useState('');
   const [dateFilter, setDateFilter] = useState('');
   const [rangeFilter, setRangeFilter] = useState({ from: '', to: '' });
@@ -37,9 +40,9 @@ const ViolationPage = () => {
     setLoading(true);
     setError('');
     try {
-      const { items } = await getViolations({
-        page: 1,
-        limit: 20,
+      const { items, pagination } = await getViolations({
+        page,
+        limit,
         search: searchQuery,
         date: dateFilter || undefined,
         from: rangeFilter.from || undefined,
@@ -47,6 +50,7 @@ const ViolationPage = () => {
         type: typeFilter || undefined,
       });
       setRows(Array.isArray(items) ? items : []);
+      if (pagination) setPageMeta(pagination);
     } catch (e) {
       setError(e?.message || 'Failed to load violations');
       setRows([]);
@@ -71,6 +75,7 @@ const ViolationPage = () => {
       setTypeFilter(vt);
       setHighlightMode(hl);
     } catch (_) {}
+    setPage(1);
     load();
     const handler = () => load();
     window.addEventListener('parking-change', handler);
@@ -79,9 +84,16 @@ const ViolationPage = () => {
 
   // Reload when filters change (ensures state is applied before fetching)
   useEffect(() => {
-    load();
+    // Reset to first page on filter changes
+    setPage(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, dateFilter, rangeFilter.from, rangeFilter.to, typeFilter]);
+
+  // Reload when page/limit or filters change
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, limit, searchQuery, dateFilter, rangeFilter.from, rangeFilter.to, typeFilter]);
 
   // Compute which rows should be highlighted based on current filters
   // Convert DB timestamp string to local YYYY-MM-DD safely
@@ -263,6 +275,17 @@ const ViolationPage = () => {
                   )}
                 </tbody>
               </table>
+            )}
+            {!loading && !error && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button className="all-btn" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>이전</button>
+                  <button className="all-btn" disabled={page >= (pageMeta.totalPages || 1)} onClick={() => setPage((p) => Math.min(pageMeta.totalPages || 1, p + 1))}>다음</button>
+                </div>
+                <div style={{ color: '#c9d1d9', fontSize: 12 }}>
+                  페이지 {pageMeta.currentPage || page} / {pageMeta.totalPages || 1} · 총 {pageMeta.totalItems || rows.length}건
+                </div>
+              </div>
             )}
           </div>
         </div>

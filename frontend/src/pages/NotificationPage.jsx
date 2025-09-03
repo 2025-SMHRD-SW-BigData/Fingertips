@@ -12,6 +12,8 @@ const NotificationPage = () => {
   const [error, setError] = useState('');
   const [marking, setMarking] = useState({});
   const [markingAll, setMarkingAll] = useState(false);
+  const [page, setPage] = useState(1);
+  const pageSize = 20; // fixed page size (no selector)
 
   useEffect(() => {
     let mounted = true;
@@ -30,6 +32,7 @@ const NotificationPage = () => {
         const rows = await getAlerts(adminId, { status: 'all' });
         if (!mounted) return;
         setNotifications(Array.isArray(rows) ? rows : []);
+        setPage(1); // reset to first page on reload
       } catch (err) {
         if (mounted) setError(err?.message || '알림을 불러오지 못했습니다.');
       } finally {
@@ -75,6 +78,13 @@ const NotificationPage = () => {
     }
   };
 
+  const totalItems = notifications.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const pageStart = (currentPage - 1) * pageSize;
+  const pageEnd = pageStart + pageSize;
+  const pageItems = notifications.slice(pageStart, pageEnd);
+
   return (
     <div className="Mainpage_box">
       <div className="page-layout-simple">
@@ -109,7 +119,7 @@ const NotificationPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {notifications.map((n) => {
+                  {pageItems.map((n) => {
                     const isUnread = !n.read_at;
                     const busy = !!marking[n.alert_idx];
                     return (
@@ -132,6 +142,17 @@ const NotificationPage = () => {
                   })}
                 </tbody>
               </table>
+            )}
+            {!loading && !error && notifications.length > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button className="all-btn" disabled={currentPage <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>이전</button>
+                  <button className="all-btn" disabled={currentPage >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>다음</button>
+                </div>
+                <div style={{ color: '#c9d1d9', fontSize: 12 }}>
+                  페이지 {currentPage} / {totalPages} · 총 {totalItems}건
+                </div>
+              </div>
             )}
           </div>
         </div>
