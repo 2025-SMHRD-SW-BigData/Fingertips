@@ -1,58 +1,107 @@
-/* SettingsPage.css */
-.settings-content {
+/* src/style/SettingsPage.css */
+
+.settings-container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 30px;
 }
 
 .settings-section {
-  background-color: #3a4460;
-  padding: 20px;
-  border-radius: 10px;
+  background-color: #2b3341;
+  padding: 25px;
+  border-radius: 15px;
+  border: 1px solid #4a5568;
 }
 
 .settings-section h2 {
   margin-top: 0;
-  margin-bottom: 15px;
-}
-
-.settings-section label {
-  display: block;
-  margin-bottom: 10px;
-}
-
-.settings-section input[type="text"],
-.settings-section input[type="file"] {
-  margin-left: 10px;
-  padding: 10px;
-  border-radius: 5px;
-  border: 1px solid #4a5568;
-  background-color: #2b3341;
-  color: white;
-}
-
-.settings-section table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.settings-section th,
-.settings-section td {
-  padding: 10px;
+  margin-bottom: 20px;
+  font-size: 22px;
+  color: #e2e8f0;
   border-bottom: 1px solid #4a5568;
-  text-align: left;
+  padding-bottom: 15px;
 }
 
-.settings-section th {
-  color: #c9d1d9;
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid #3a4460;
 }
 
-.settings-section button {
-  margin-right: 5px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  border: none;
-  background-color: #4a5568;
-  color: white;
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-item label {
+  font-size: 16px;
+  color: #cbd5e1;
+}
+
+/* Toggle Switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
   cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #4a5568;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #3b82f6;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #3b82f6;
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+/* Input and Select Styles */
+.setting-item select,
+.setting-item input[type="time"] {
+  background-color: #1f2733;
+  color: #fff;
+  border: 1px solid #4a5568;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 16px;
 }

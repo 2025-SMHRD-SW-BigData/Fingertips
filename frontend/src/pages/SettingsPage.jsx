@@ -6,23 +6,28 @@ import MainpageTop from '../component/MainpageTop';
 import Logo from '../component/Logo';
 
 const SettingsPage = () => {
-  const [settings, setSettings] = useState({
-    siteTitle: '이음 주차',
-    emailNotifications: true,
-    pushNotifications: false,
+  const [notificationSettings, setNotificationSettings] = useState({
+    realtimeAlerts: true,
+    dailyReports: false,
+    reportTime: '09:00',
   });
 
-  const [users, setUsers] = useState([
-    { id: 1, name: '관리자', email: 'admin@example.com', role: 'Super Admin' },
-    { id: 2, name: '부관리자', email: 'subadmin@example.com', role: 'Admin' },
-  ]);
+  const [cctvSettings, setCctvSettings] = useState({
+    retentionPeriod: '15',
+    motionSensitivity: 'medium',
+  });
 
-  const handleSettingChange = (e) => {
+  const handleNotificationChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setSettings((prev) => ({
+    setNotificationSettings((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
+  };
+
+  const handleCctvChange = (e) => {
+    const { name, value } = e.target;
+    setCctvSettings((prev) => ({ ...prev, [name]: value }));
   };
 
   return (
@@ -33,69 +38,72 @@ const SettingsPage = () => {
         <Sidebar />
         <div className="content-area">
           <h1>설정</h1>
-          <div className="settings-content">
-            <div className="settings-section">
-              <h2>일반 설정</h2>
-              <label>
-                사이트 제목:
-                <input
-                  type="text"
-                  name="siteTitle"
-                  value={settings.siteTitle}
-                  onChange={handleSettingChange}
-                />
-              </label>
-              <label>
-                로고 업로드:
-                <input type="file" />
-              </label>
-            </div>
+          <div className="settings-container">
             <div className="settings-section">
               <h2>알림 설정</h2>
-              <label>
-                <input
-                  type="checkbox"
-                  name="emailNotifications"
-                  checked={settings.emailNotifications}
-                  onChange={handleSettingChange}
-                />
-                이메일 알림
-              </label>
-              <label>
-                <input
-                  type="checkbox"
-                  name="pushNotifications"
-                  checked={settings.pushNotifications}
-                  onChange={handleSettingChange}
-                />
-                푸시 알림
-              </label>
+              <div className="setting-item">
+                <label>실시간 위반 알림</label>
+                <label className="switch">
+                  <input
+                    type="checkbox"
+                    name="realtimeAlerts"
+                    checked={notificationSettings.realtimeAlerts}
+                    onChange={handleNotificationChange}
+                  />
+                  <span className="slider round"></span>
+                </label>
+              </div>
+              <div className="setting-item">
+                <label>일일 리포트 수신</label>
+                <label className="switch">
+                  <input
+                    type="checkbox"
+                    name="dailyReports"
+                    checked={notificationSettings.dailyReports}
+                    onChange={handleNotificationChange}
+                  />
+                  <span className="slider round"></span>
+                </label>
+              </div>
+              {notificationSettings.dailyReports && (
+                <div className="setting-item">
+                  <label>리포트 수신 시간</label>
+                  <input
+                    type="time"
+                    name="reportTime"
+                    value={notificationSettings.reportTime}
+                    onChange={handleNotificationChange}
+                  />
+                </div>
+              )}
             </div>
+
             <div className="settings-section">
-              <h2>사용자 관리</h2>
-              <table>
-                <thead>
-                  <tr>
-                    <th>이름</th>
-                    <th>이메일</th>
-                    <th>권한</th>
-                    <th>관리</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((user) => (
-                    <tr key={user.id}>
-                      <td>{user.name}</td>
-                      <td>{user.email}</td>
-                      <td>{user.role}</td>
-                      <td>
-                        <button>수정</button>
-                        <button>삭제</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <h2>CCTV 설정</h2>
+              <div className="setting-item">
+                <label>영상 보관 기간</label>
+                <select
+                  name="retentionPeriod"
+                  value={cctvSettings.retentionPeriod}
+                  onChange={handleCctvChange}
+                >
+                  <option value="7">7일</option>
+                  <option value="15">15일</option>
+                  <option value="30">30일</option>
+                </select>
+              </div>
+              <div className="setting-item">
+                <label>움직임 감지 민감도</label>
+                <select
+                  name="motionSensitivity"
+                  value={cctvSettings.motionSensitivity}
+                  onChange={handleCctvChange}
+                >
+                  <option value="low">낮음</option>
+                  <option value="medium">중간</option>
+                  <option value="high">높음</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
