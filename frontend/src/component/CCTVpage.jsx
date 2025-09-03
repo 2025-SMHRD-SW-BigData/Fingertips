@@ -138,6 +138,11 @@ const CCTVManagement = () => {
 };
 
 const CCTVpage = () => {
+    React.useEffect(() => {
+        try {
+            localStorage.setItem('cctv_last_visit', new Date().toISOString());
+        } catch (_) {}
+    }, []);
     return (
         <div className="Mainpage_box">
             <div className="page-layout-simple">
