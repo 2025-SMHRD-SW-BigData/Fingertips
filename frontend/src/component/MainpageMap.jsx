@@ -162,9 +162,13 @@ const MainpageMap = ({ parking_idx, maxWidth }) => {
         >
           <g className="slots">
             {mergedSlots.map((s) => {
+              const RED = 'rgba(229, 62, 62, 0.75)'; // #E53E3E
+              const GREEN = 'rgba(104, 211, 145, 0.65)'; // #68D391 (disabled available)
+              const BLUE = 'rgba(99, 179, 237, 0.65)'; // #63B3ED (general available)
               const fill = s.occupied
-                ? 'rgba(229, 62, 62, 0.75)'
-                : (s.type === 'disabled' ? 'rgba(49, 130, 206, 0.55)' : 'rgba(56, 161, 105, 0.60)');
+                ? RED
+                // Swap available colors: general=BLUE, disabled=GREEN
+                : (s.type === 'disabled' ? GREEN : BLUE);
               return (
                 <rect
                   key={s.id}
@@ -191,4 +195,3 @@ const MainpageMap = ({ parking_idx, maxWidth }) => {
 };
 
 export default MainpageMap;
-
