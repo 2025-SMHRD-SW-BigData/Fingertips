@@ -1,5 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import ThemeProvider from './theme/ThemeProvider';
+import './style/theme.css';
 import Login from './pages/Login';
 import MainPage from './component/Mainpage';
 import AdminSignup from './pages/AdminSignup';
@@ -20,7 +22,7 @@ function ProtectedRoute({ children }) {
 
 export default function App() {
   return (
-    
+    <ThemeProvider>
     <Routes>
       {/* 시작 페이지를 로그인으로 */}
       <Route path="/" element={<Navigate to="/login" replace />} />
@@ -97,6 +99,7 @@ export default function App() {
       />
       
     </Routes>
+    </ThemeProvider>
   );
 }
 

@@ -4,6 +4,7 @@ import '../style/SettingsPage.css';
 import Sidebar from '../component/Sidebar';
 import MainpageTop from '../component/MainpageTop';
 import Logo from '../component/Logo';
+import { useTheme } from '../theme/ThemeProvider';
 
 const SettingsPage = () => {
   const [notificationSettings, setNotificationSettings] = useState({
@@ -16,6 +17,9 @@ const SettingsPage = () => {
     retentionPeriod: '15',
     motionSensitivity: 'medium',
   });
+
+  const { theme, setTheme } = useTheme();
+  const isLight = theme === 'light';
 
   const handleNotificationChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -39,6 +43,20 @@ const SettingsPage = () => {
         <div className="content-area">
           <h1>설정</h1>
           <div className="settings-container">
+            <div className="settings-section">
+              <h2>테마</h2>
+              <div className="setting-item">
+                <label>Light Mode</label>
+                <label className="switch">
+                  <input
+                    type="checkbox"
+                    checked={isLight}
+                    onChange={(e) => setTheme(e.target.checked ? 'light' : 'dark')}
+                  />
+                  <span className="slider round"></span>
+                </label>
+              </div>
+            </div>
             <div className="settings-section">
               <h2>알림 설정</h2>
               <div className="setting-item">

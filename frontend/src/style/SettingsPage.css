@@ -7,18 +7,18 @@
 }
 
 .settings-section {
-  background-color: #2b3341;
+  background-color: var(--bg-surface);
   padding: 25px;
   border-radius: 15px;
-  border: 1px solid #4a5568;
+  border: 1px solid var(--border);
 }
 
 .settings-section h2 {
   margin-top: 0;
   margin-bottom: 20px;
   font-size: 22px;
-  color: #e2e8f0;
-  border-bottom: 1px solid #4a5568;
+  color: var(--text-body);
+  border-bottom: 1px solid var(--border);
   padding-bottom: 15px;
 }
 
@@ -27,7 +27,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 15px 0;
-  border-bottom: 1px solid #3a4460;
+  border-bottom: 1px solid var(--border);
 }
 
 .setting-item:last-child {
@@ -36,7 +36,7 @@
 
 .setting-item label {
   font-size: 16px;
-  color: #cbd5e1;
+  color: var(--text-body);
 }
 
 /* Toggle Switch */
@@ -60,7 +60,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #4a5568;
+  background-color: var(--border);
   transition: .4s;
 }
 
@@ -71,17 +71,13 @@
   width: 26px;
   left: 4px;
   bottom: 4px;
-  background-color: white;
+  background-color: var(--bg-surface);
   transition: .4s;
 }
 
-input:checked + .slider {
-  background-color: #3b82f6;
-}
+input:checked + .slider { background-color: var(--accent-blue); }
 
-input:focus + .slider {
-  box-shadow: 0 0 1px #3b82f6;
-}
+input:focus + .slider { box-shadow: 0 0 1px var(--accent-blue); }
 
 input:checked + .slider:before {
   transform: translateX(26px);
@@ -98,9 +94,9 @@ input:checked + .slider:before {
 /* Input and Select Styles */
 .setting-item select,
 .setting-item input[type="time"] {
-  background-color: #1f2733;
-  color: #fff;
-  border: 1px solid #4a5568;
+  background-color: var(--bg-surface-2);
+  color: var(--text-body);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 10px;
   font-size: 16px;

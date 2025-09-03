@@ -2,7 +2,8 @@
 .Mainpage_box {
   width: 100%;
   min-height: 100vh;
-  background-color: #3e4a59; /* Slightly lighter background */
+  background-color: var(--bg-body);
+  color: var(--text-body);
   padding: 20px;
   box-sizing: border-box;
 }
@@ -43,15 +44,16 @@
 .bottom-content { grid-area: bottom; }
 .content-area {
   grid-area: content;
-  background-color: #2B3341;
+  background-color: var(--bg-surface);
   max-height: 2000px;
-  color: white;
+  color: var(--text-body);
   border-radius: 20px;
   padding: 20px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   overflow-y: auto; 
+  border: 1px solid var(--border);
 }
 
 .content-area h1 {
@@ -60,10 +62,10 @@
 
 /* Base Box Style */
 .box-style {
-  background-color: #2B3341;
-  color: white;
+  background-color: var(--bg-surface);
+  color: var(--text-body);
   border-radius: 20px;
-  border: 1px solid #4a5568;
+  border: 1px solid var(--border);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   padding: 20px;
   box-sizing: border-box;
@@ -91,7 +93,7 @@
 }
 
 .side_sbox {
-  background-color: #3A4460;
+  background-color: var(--bg-surface-2);
   padding: 15px;
   border-radius: 10px;
   font-family: 'Pretendard Variable', sans-serif;
@@ -103,7 +105,7 @@
 }
 
 .side_sbox:hover {
-  background-color: #4a5568;
+  background-color: var(--border);
 }
 
 /* Sidebar-local placement for ParkingControls on main page */
@@ -114,8 +116,24 @@
 .sidebar-controls .parking-controls-inner { width: 100%; }
 .sidebar-controls select { width: 100%; }
 
+/* ParkingControls selects (both topbar and sidebar) */
+.parking-controls select {
+  background-color: var(--bg-surface-2);
+  color: var(--text-body);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 14px;
+}
+.parking-controls select:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  background-color: var(--bg-surface);
+}
+.parking-controls option { color: var(--text-body); background: var(--bg-surface); }
+
 .notification-badge {
-  background-color: #e53e3e; /* A brighter red */
+  background-color: var(--danger);
   color: white;
   width: 25px;
   height: 25px;
@@ -145,11 +163,11 @@
   height: 40px;
   padding: 8px 12px 8px 35px; /* Add padding for icon */
   border-radius: 10px;
-  border: 1px solid #4a5568;
+  border: 1px solid var(--border);
   outline: none;
   font-size: 14px;
-  color: #fff;
-  background-color: #3b4252;
+  color: var(--text-body);
+  background-color: var(--bg-surface-2);
 }
 
 .search-icon {
@@ -170,7 +188,7 @@
 
 .top-bar-widgets > div,
 .top-bar-widgets > button {
-  background-color: #3b4252;
+  background-color: var(--bg-surface-2);
   padding: 8px 12px;
   border-radius: 10px;
   height: 40px;
@@ -266,16 +284,16 @@
   right: 0;
   top: calc(100% + 8px);
   width: 320px;
-  background: #2b3341;
-  color: #fff;
-  border: 1px solid #4a5568;
+  background: var(--bg-surface);
+  color: var(--text-body);
+  border: 1px solid var(--border);
   border-radius: 10px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.4);
   z-index: 1500;
 }
 .bell-dropdown-header {
   padding: 10px 12px;
-  border-bottom: 1px solid #3b4457;
+  border-bottom: 1px solid var(--border);
   font-weight: 600;
 }
 .bell-dropdown-list {
@@ -287,11 +305,11 @@
 }
 .bell-dropdown-item {
   padding: 10px 12px;
-  border-bottom: 1px solid #3b4457;
+  border-bottom: 1px solid var(--border);
 }
 .bell-item-title { font-size: 13px; }
-.bell-item-meta { font-size: 11px; color: #9aa0a6; margin-top: 2px; }
-.bell-dropdown-empty { padding: 12px; color: #cbd5e1; }
+.bell-item-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.bell-dropdown-empty { padding: 12px; color: var(--text-muted); }
 .bell-dropdown-footer { padding: 10px 12px; display: flex; justify-content: flex-end; }
 
 /* Stats Section */
@@ -314,7 +332,7 @@
 .widget-title {
   font-size: 20px;
   font-weight: 600;
-  color: #E2E8F0;
+  color: var(--text-body);
   margin: 0;
 }
 
@@ -338,14 +356,14 @@
   flex: 1;
   height: 100%;
   border-radius: 15px;
-  background-color: #3A4460;
+  background-color: var(--bg-surface-2);
   display: flex;
   flex-direction: row; /* Image on left, text on right */
   align-items: center;
   justify-content: center; /* Center the content horizontally */
   gap: 70px;
   padding: 20px;
-  color: white;
+  color: var(--text-body);
 }
 
 .stat-box-main {
@@ -362,14 +380,14 @@
 .mainmap {
   width: 100%;
   height: 100%;
-  background-color: #3A4460;
+  background-color: var(--bg-surface-2);
   border-radius: 15px;
   /* Placeholder for map */
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 2rem;
-  color: #4a5568;
+  color: var(--text-muted);
 }
 
 /* Bottom Content Layout */
@@ -387,7 +405,7 @@
 .vio_box, .inout_box {
   width: 100%;
   height: 100%;
-  background-color: #3A4460;
+  background-color: var(--bg-surface-2);
   border-radius: 15px;
   padding: 15px;
   box-sizing: border-box;
@@ -407,9 +425,9 @@
 }
 
 .all-btn {
-  background: #444c5c;
-  color: white;
-  border: none;
+  background: var(--bg-surface-2);
+  color: var(--text-body);
+  border: 1px solid var(--border);
   padding: 6px 12px;
   border-radius: 10px;
   cursor: pointer;
@@ -477,6 +495,7 @@
 
 /* Bold style for unread notifications */
 .notification-list tr.unread td { font-weight: 700; }
+.notification-list tr.unread { background: rgba(99, 179, 237, 0.12); }
 
 .violation-list th, .notification-list th {
   color: #c9d1d9;
@@ -632,9 +651,9 @@
 
 
 .parking-select select {
-  background-color: #3b4252;
-  color: white;
-  border: 1px solid #4a5568;
+  background-color: var(--bg-surface-2);
+  color: var(--text-body);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 8px 12px;
   font-size: 14px;
@@ -652,13 +671,13 @@
 }
 
 .parking-select select:hover {
-  border-color: #63b3ed;
+  border-color: var(--accent-blue);
 }
 
 .parking-select select:focus {
   outline: none;
-  border-color: #63b3ed;
-  background-color: #4a5568;
+  border-color: var(--accent-blue);
+  background-color: var(--bg-surface);
 }
 
 /* Search suggestions */
@@ -666,29 +685,29 @@
 .search-suggest {
   position: absolute;
   left: 0; right: 0; top: calc(100% + 6px);
-  background: #2B3341;
-  color: white;
+  background: var(--bg-surface);
+  color: var(--text-body);
   border-radius: 12px;
-  border: 1px solid #4a5568;
+  border: 1px solid var(--border);
   box-shadow: 0 10px 30px rgba(0,0,0,0.35);
   overflow: hidden;
   z-index: 1500;
 }
-.search-suggest-header { padding: 8px 12px; border-bottom: 1px solid #4a5568; font-size: 12px; color: #c9d1d9; }
-.search-suggest-empty { padding: 12px; color: #c9d1d9; font-size: 13px; }
+.search-suggest-header { padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--text-muted); }
+.search-suggest-empty { padding: 12px; color: var(--text-muted); font-size: 13px; }
 .search-suggest-list { list-style: none; margin: 0; padding: 0; max-height: 260px; overflow-y: auto; }
-.search-suggest-item { border-bottom: 1px solid #3b4457; }
+.search-suggest-item { border-bottom: 1px solid var(--border); }
 .search-suggest-item:last-child { border-bottom: none; }
 .search-suggest-item button { width: 100%; display: flex; justify-content: space-between; background: transparent; color: inherit; border: none; text-align: left; padding: 10px 12px; cursor: pointer; }
-.search-suggest-item button:hover { background: #3A4460; }
+.search-suggest-item button:hover { background: var(--bg-surface-2); }
 .suggest-main { font-weight: 600; }
-.suggest-sub { color: #c9d1d9; font-size: 12px; }
+.suggest-sub { color: var(--text-muted); font-size: 12px; }
 
 
 .btn-outline {
   background-color: transparent;
-  border: 1px solid #fff;
-  color: #fff;
+  border: 1px solid var(--border);
+  color: var(--text-body);
   padding: 8px 16px;
   border-radius: 8px;
   cursor: pointer;
@@ -699,7 +718,7 @@
 }
 
 .btn-outline:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: var(--bg-surface-2);
 }
 
 .btn-outline img {
@@ -731,8 +750,22 @@
 .svg-stage { position: relative; width: 100%; height: auto; }
 .map-base-svg { display: block; width: 100%; height: 100%; position: relative; z-index: 1; }
 .slot-overlay-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
-.slot { stroke: rgba(255,255,255,0.85); stroke-width: 1; rx: 4px; ry: 4px; }
-.slot.general.free { fill: rgba(99, 179, 237, 0.65); } /* #63B3ED */
-.slot.general.occupied { fill: rgba(229, 62, 62, 0.75); }
-.slot.disabled.free { fill: rgba(104, 211, 145, 0.65); } /* #68D391 */
-.slot.disabled.occupied { fill: rgba(229, 62, 62, 0.75); }
+.slot { stroke: var(--slot-stroke); stroke-width: 1; rx: 4px; ry: 4px; }
+.slot.general.free { fill: var(--slot-general-free); }
+.slot.general.occupied { fill: var(--slot-occupied); }
+.slot.disabled.free { fill: var(--slot-disabled-free); }
+.slot.disabled.occupied { fill: var(--slot-occupied); }
+
+/* --- Light/Dark overrides for legacy hard-coded styles --- */
+.modal-options label { color: var(--text-body); }
+.modal-textarea { background-color: var(--bg-surface-2); color: var(--text-body); border: 1px solid var(--border); }
+.modal-options label::before { background-color: var(--text-muted); }
+.modal-options input[type="radio"]:checked + label::before { border: 2px solid var(--accent-blue); box-shadow: 0 0 0 2px var(--bg-surface) inset; }
+.radio-option label { color: var(--text-body); }
+.radio-option label::before { background-color: var(--text-muted); }
+.radio-option input[type="radio"]:checked + label::before { background-color: var(--accent-blue); border: 2px solid var(--bg-surface); box-shadow: 0 0 0 2px var(--accent-blue); }
+.bell-item-meta { color: var(--text-muted); }
+.bell-dropdown-empty { color: var(--text-muted); }
+.stat-box { background-color: var(--bg-surface-2); color: var(--text-body); }
+.vio_box, .inout_box { background-color: var(--bg-surface-2); }
+.all-btn { background: var(--bg-surface-2); color: var(--text-body); border: 1px solid var(--border); }
