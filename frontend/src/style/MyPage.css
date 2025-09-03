@@ -102,56 +102,79 @@
 .modal-body {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 16px;
+  gap: 15px;
+  padding: 20px;
 }
-.modal-body .form-row {
-  display: grid;
-  grid-template-columns: 130px 1fr; /* fixed label width + flexible input */
-  align-items: center;
-  column-gap: 12px;
+
+.input-group {
+  position: relative;
 }
-.modal-body .form-label {
-  color: #e2e8f0;
+
+.input-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
 }
+
 .modal-body input {
-  padding: 10px;
-  border-radius: 6px;
+  padding: 12px 40px 12px 40px;
+  border-radius: 8px;
   border: 1px solid #4a5568;
   background-color: #1f2733;
   color: #fff;
   width: 100%;
+  font-size: 16px;
 }
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+}
+
 .modal-actions {
   display: flex;
   gap: 10px;
   justify-content: flex-end;
-  margin-top: 8px;
+  margin-top: 15px;
 }
+
 .modal-actions button {
-  padding: 10px 16px;
-  border-radius: 6px;
+  padding: 12px 20px;
+  border-radius: 8px;
   border: none;
   cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
 }
-.modal-actions button[type="submit"],
-.modal-actions button:last-child {
-  background: #3b82f6;
-  color: #fff;
-}
-.modal-actions button:first-child {
+
+.cancel-btn {
   background: #4a5568;
   color: #fff;
 }
+
+.submit-btn {
+  background: #3b82f6;
+  color: #fff;
+}
+
 .modal-error {
   background: #7f1d1d;
   color: #fecaca;
-  padding: 8px;
-  border-radius: 6px;
+  padding: 10px;
+  border-radius: 8px;
 }
+
 .modal-success {
   background: #14532d;
   color: #bbf7d0;
-  padding: 8px;
-  border-radius: 6px;
+  padding: 10px;
+  border-radius: 8px;
 }

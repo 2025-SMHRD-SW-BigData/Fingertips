@@ -1,11 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { changePassword } from '../services/api';
+import { FiUser, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
 
 const ChangePasswordModal = ({ isOpen, onClose }) => {
   const [form, setForm] = useState({ current: '', next: '', confirm: '' });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [busy, setBusy] = useState(false);
+  const [showPassword, setShowPassword] = useState({
+    current: false,
+    next: false,
+    confirm: false,
+  });
 
   useEffect(() => {
     if (!isOpen) {
@@ -13,6 +19,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
       setError('');
       setSuccess('');
       setBusy(false);
+      setShowPassword({ current: false, next: false, confirm: false });
     }
   }, [isOpen]);
 
@@ -21,6 +28,10 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
   const onChange = (e) => {
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
+  };
+
+  const toggleShowPassword = (name) => {
+    setShowPassword((s) => ({ ...s, [name]: !s[name] }));
   };
 
   const onSubmit = async (e) => {
@@ -68,40 +79,56 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
         <form onSubmit={onSubmit} className="modal-body">
           {error && <div className="modal-error">{error}</div>}
           {success && <div className="modal-success">{success}</div>}
-          <label className="form-row">
-            <span className="form-label">현재 비밀번호</span>
+          
+          <div className="input-group">
+            <FiUser className="input-icon" />
             <input
-              type="password"
+              type={showPassword.current ? 'text' : 'password'}
               name="current"
+              placeholder="현재 비밀번호"
               value={form.current}
               onChange={onChange}
               autoFocus
               disabled={busy}
             />
-          </label>
-          <label className="form-row">
-            <span className="form-label">새 비밀번호</span>
+            <button type="button" onClick={() => toggleShowPassword('current')} className="password-toggle">
+              {showPassword.current ? <FiEyeOff /> : <FiEye />}
+            </button>
+          </div>
+
+          <div className="input-group">
+            <FiLock className="input-icon" />
             <input
-              type="password"
+              type={showPassword.next ? 'text' : 'password'}
               name="next"
+              placeholder="새 비밀번호"
               value={form.next}
               onChange={onChange}
               disabled={busy}
             />
-          </label>
-          <label className="form-row">
-            <span className="form-label">새 비밀번호 확인</span>
+            <button type="button" onClick={() => toggleShowPassword('next')} className="password-toggle">
+              {showPassword.next ? <FiEyeOff /> : <FiEye />}
+            </button>
+          </div>
+
+          <div className="input-group">
+            <FiLock className="input-icon" />
             <input
-              type="password"
+              type={showPassword.confirm ? 'text' : 'password'}
               name="confirm"
+              placeholder="새 비밀번호 확인"
               value={form.confirm}
               onChange={onChange}
               disabled={busy}
             />
-          </label>
+            <button type="button" onClick={() => toggleShowPassword('confirm')} className="password-toggle">
+              {showPassword.confirm ? <FiEyeOff /> : <FiEye />}
+            </button>
+          </div>
+
           <div className="modal-actions">
-            <button type="button" onClick={onClose} disabled={busy}>취소</button>
-            <button type="submit" disabled={busy}>{busy ? '변경 중...' : '변경'}</button>
+            <button type="button" className="cancel-btn" onClick={onClose} disabled={busy}>취소</button>
+            <button type="submit" className="submit-btn" disabled={busy}>{busy ? '변경 중...' : '변경'}</button>
           </div>
         </form>
       </div>
