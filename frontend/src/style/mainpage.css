@@ -332,7 +332,7 @@
   margin-bottom: 8px;
 }
 
-.stats-row { /* Optional if we later group stat boxes */ }
+/* .stats-row { Optional if we later group stat boxes } */
 
 .stat-box {
   flex: 1;
