@@ -1,7 +1,7 @@
-import { uploadToS3 } from "../services/s3Service.js";
-import { insertVehicle } from "../repositories/vehicleRepository.js";
+const { uploadToS3 } = require("../services/s3Service");
+const { insertVehicle } = require("../repositories/vehicleRepository");
 
-export const createVehicle = async (req, res) => {
+const createVehicle = async (req, res) => {
   try {
     const { plateNumber } = req.body;
     const fileBuffer = req.file.buffer;
@@ -22,3 +22,5 @@ export const createVehicle = async (req, res) => {
     res.status(500).json({ error: "서버 에러" });
   }
 };
+
+module.exports = { createVehicle };
