@@ -1,4 +1,5 @@
 ﻿import React, { useState } from 'react';
+import { FiLock } from 'react-icons/fi';
 import '../style/mainpage.css';
 import '../style/MyPage.css';
 import Sidebar from '../component/Sidebar';
@@ -40,7 +41,10 @@ const MyPage = () => {
               <p><strong>이름:</strong> {admin.name}</p>
               <p><strong>이메일:</strong> {admin.email}</p>
               <p><strong>권한:</strong> {admin.role}</p>
-              <button type="button" onClick={() => setShowPwdModal(true)} style={{ marginTop: '10px' }}>비밀번호 변경</button>
+              <button type="button" onClick={() => setShowPwdModal(true)} className="btn-outline" style={{ marginTop: '10px' }}>
+                <FiLock />
+                <span style={{ marginLeft: '8px' }}>비밀번호 변경</span>
+              </button>
             </div>
             <div className="password-section">
               <h2>비밀번호 변경</h2>

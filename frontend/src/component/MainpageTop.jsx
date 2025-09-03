@@ -281,7 +281,7 @@ const MainpageTop = ({ showParkingControls = false }) => {
           )}
         </div>
         <div className='login_out'>
-          <button onClick={handleLogout} className='logout-btn'>
+          <button onClick={handleLogout} className='btn-outline'>
             <img src={logoutIcon} alt="Logout" />
             <span>Logout</span>
           </button>
