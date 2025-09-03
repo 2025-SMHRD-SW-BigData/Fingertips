@@ -65,24 +65,22 @@ const LiveStreamPage = () => {
                 <MainpageTop />
                 <Sidebar />
                 <div className="content-area">
-                    <div className="live-stream-content">
-                        <h1>실시간 라즈베리파이 영상</h1>
-                        <div className="live-video-wrapper">
-                            {isConnected && videoSrc ? (
-                                <img src={videoSrc} alt="Live Stream from Pi" />
-                            ) : (
-                                <div className="status-overlay">
-                                    <p>라즈베리파이 서버에 연결 중...</p>
-                                    <p>(백엔드 및 라즈베리파이 스트리밍 스크립트가 실행 중인지 확인하세요)</p>
-                                </div>
-                            )}
-                            {isConnected && videoSrc && stats && (
-                                <div className="live-stats-overlay">
-                                    <p>감지된 객체: {stats.detectionCount}</p>
-                                    <p>상태: {stats.status}</p>
-                                </div>
-                            )}
-                        </div>
+                    <h1>실시간 라즈베리파이 영상</h1> {/* Moved h1 here */}
+                    <div className="live-video-wrapper box-style"> {/* Added box-style */}
+                        {isConnected && videoSrc ? (
+                            <img src={videoSrc} alt="Live Stream from Pi" />
+                        ) : (
+                            <div className="status-overlay">
+                                <p>라즈베리파이 서버에 연결 중...</p>
+                                <p>(백엔드 및 라즈베리파이 스트리밍 스크립트가 실행 중인지 확인하세요)</p>
+                            </div>
+                        )}
+                        {isConnected && videoSrc && stats && (
+                            <div className="live-stats-overlay">
+                                <p>감지된 객체: {stats.detectionCount}</p>
+                                <p>상태: {stats.status}</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
