@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import '../style/mainpage.css';
 import search from '../assets/search.png';
 import bell from '../assets/bell.png';
+import logoutIcon from '../assets/logout.svg';
 import { getUnreadAlerts, getAlerts, getViolations } from '../services/api';
 import ParkingControls from './ParkingControls';
 
@@ -280,7 +281,10 @@ const MainpageTop = ({ showParkingControls = false }) => {
           )}
         </div>
         <div className='login_out'>
-          <button onClick={handleLogout} className='logout-btn'>Logout</button>
+          <button onClick={handleLogout} className='logout-btn'>
+            <img src={logoutIcon} alt="Logout" />
+            <span>Logout</span>
+          </button>
         </div>
       </div>
     </div>

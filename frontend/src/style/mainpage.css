@@ -681,3 +681,33 @@
 .search-suggest-item button:hover { background: #3A4460; }
 .suggest-main { font-weight: 600; }
 .suggest-sub { color: #c9d1d9; font-size: 12px; }
+
+.logout-btn {
+  background-color: transparent;
+  border: 1px solid #fff;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s, color 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.logout-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.logout-btn img {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+}
+
+.login_out{
+  background-color: transparent;
+}
+.login_out:hover{
+  background-color: transparent;
+}
