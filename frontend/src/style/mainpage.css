@@ -37,6 +37,7 @@
 .Mainpage_logo { grid-area: logo; }
 .Sidebar_box { grid-area: sidebar; }
 .Top_box { grid-area: topbar; }
+.statistics-widget { grid-area: stats; }
 .stats-container { grid-area: stats; }
 .mainmap { grid-area: map; }
 .bottom-content { grid-area: bottom; }
@@ -294,12 +295,13 @@
 .bell-dropdown-footer { padding: 10px 12px; display: flex; justify-content: flex-end; }
 
 /* Stats Section */
-.statistics-widget { grid-area: stats; }
+
 .statistics-widget {
-  padding: 24px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  justify-content: center;
 }
 
 .widget-header {
@@ -334,7 +336,7 @@
 
 .stat-box {
   flex: 1;
-  height: 150px; /* Increased height slightly */
+  height: 100%;
   border-radius: 15px;
   background-color: #3A4460;
   display: flex;
