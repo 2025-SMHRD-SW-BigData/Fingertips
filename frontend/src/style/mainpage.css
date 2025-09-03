@@ -682,6 +682,7 @@
 .suggest-main { font-weight: 600; }
 .suggest-sub { color: #c9d1d9; font-size: 12px; }
 
+
 .logout-btn {
   background-color: transparent;
   border: 1px solid #fff;
@@ -711,3 +712,15 @@
 .login_out:hover{
   background-color: transparent;
 }
+
+/* Highlight pulse for freshly navigated rows */
+@keyframes highlightPulse {
+  0% { background-color: rgba(99, 179, 237, 0.35); box-shadow: 0 0 0 0 rgba(99, 179, 237, 0.0); }
+  50% { background-color: rgba(99, 179, 237, 0.15); box-shadow: 0 0 0 4px rgba(99, 179, 237, 0.25); }
+  100% { background-color: transparent; box-shadow: 0 0 0 0 rgba(99, 179, 237, 0.0); }
+}
+
+.highlight-blink {
+  animation: highlightPulse 2.5s ease-in-out 1;
+}
+

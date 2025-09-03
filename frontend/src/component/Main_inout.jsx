@@ -42,11 +42,10 @@ const Main_inout = () => {
       </div>
       <table className="data-table">
         <colgroup>
+          <col style={{width: "30%"}} />
+          <col style={{width: "25%"}} />
           <col style={{width: "25%"}} />
           <col style={{width: "20%"}} />
-          <col style={{width: "20%"}} />
-          <col style={{width: "20%"}} />
-          <col style={{width: "15%"}} />
         </colgroup>
         <thead>
           <tr>
@@ -54,7 +53,6 @@ const Main_inout = () => {
             <th>구역</th>
             <th>입차</th>
             <th>출차</th>
-            <th>작업</th>
           </tr>
         </thead>
         <tbody>
@@ -64,14 +62,11 @@ const Main_inout = () => {
               <td>{row.space_id}</td>
               <td>{formatTime(row.entry_at)}</td>
               <td>{formatTime(row.exit_at)}</td>
-              <td>
-                <button className="action-btn">보기</button>
-              </td>
             </tr>
           ))}
           {rows.length === 0 && (
             <tr>
-              <td colSpan={5} style={{ textAlign: 'center', color: '#ccc' }}>표시할 데이터가 없습니다</td>
+              <td colSpan={4} style={{ textAlign: 'center', color: '#ccc' }}>표시할 데이터가 없습니다</td>
             </tr>
           )}
         </tbody>
@@ -81,3 +76,4 @@ const Main_inout = () => {
 };
 
 export default Main_inout;
+

@@ -1,15 +1,23 @@
 const db = require('../services/db');
 
 function buildRange({ date, from, to }) {
+  const isDateOnly = (s) => /^\d{4}-\d{2}-\d{2}$/.test(String(s));
+  const isDateTime = (s) => /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(String(s));
+  const norm = (s, end = false) => {
+    if (isDateOnly(s)) return `${s} ${end ? '23:59:59' : '00:00:00'}`;
+    if (isDateTime(s)) return s;
+    return null;
+  };
   if (date) {
-    const start = `${date} 00:00:00`;
-    const end = `${date} 23:59:59`;
+    const start = norm(date, false);
+    const end = norm(date, true);
+    if (!start || !end) return null; // let caller decide how to respond
     return { start, end };
   }
   if (from && to) {
-    const isDateOnly = (s) => /^\d{4}-\d{2}-\d{2}$/.test(String(s));
-    const start = isDateOnly(from) ? `${from} 00:00:00` : from;
-    const end = isDateOnly(to) ? `${to} 23:59:59` : to;
+    const start = norm(from, false);
+    const end = norm(to, true);
+    if (!start || !end) return null; // let caller decide how to respond
     return { start, end };
   }
   return null;
@@ -25,6 +33,15 @@ async function getViolationsByType(req, res, next) {
   try {
     const { date, from, to } = req.query || {};
     const range = buildRange({ date, from, to });
+    if ((date || from || to) && !range) {
+      return res.status(400).json({
+        error: {
+          code: 'BAD_REQUEST',
+          message: 'Invalid date/from/to format. Use YYYY-MM-DD or YYYY-MM-DD HH:mm:ss',
+          params: { date, from, to },
+        },
+      });
+    }
     const parkingIdx = parseParkingIdx(req);
 
     if (range || parkingIdx !== null) {
@@ -60,38 +77,68 @@ async function getViolationsByType(req, res, next) {
   }
 }
 
-// Stats: by date (daily)
+// Stats: by date (supports group=day|week|month)
 async function getViolationsByDate(req, res, next) {
   try {
-    const { date, from, to } = req.query || {};
+    const { from, to, date } = req.query || {};
+    const group = String((req.query && req.query.group) || 'day').toLowerCase();
     const range = buildRange({ date, from, to });
+    if ((date || from || to) && !range) {
+      return res.status(400).json({
+        error: {
+          code: 'BAD_REQUEST',
+          message: 'Invalid date/from/to format. Use YYYY-MM-DD or YYYY-MM-DD HH:mm:ss',
+          params: { date, from, to },
+        },
+      });
+    }
     const parkingIdx = parseParkingIdx(req);
 
-    if (range || parkingIdx !== null) {
-      const where = [];
-      const params = [];
-      if (range) {
-        where.push('DATE(v.created_at) >= ? AND DATE(v.created_at) <= ?');
-        params.push(range.start, range.end)      }
-      if (parkingIdx !== null) {
-        where.push('d.parking_idx = ?');
-        params.push(parkingIdx);
-      }
-      const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
-      const rows = await db.query(
-        `SELECT DATE_FORMAT(v.created_at, '%Y-%m-%d') AS date, COUNT(*) AS cnt
-           FROM tb_violation v
-           JOIN tb_detection d ON d.ve_detection_idx = v.ve_detection_idx
-         ${whereSql}
-          GROUP BY date
-          ORDER BY date`,
-        params
-      );
-      return res.json(rows);
+   
+
+    // 1. SELECT 절 동적 구성
+    let selectClause;
+    switch (group) {
+      case 'month':
+        selectClause = `DATE_FORMAT(v.created_at, '%Y-%m') AS bucket, COUNT(*) AS cnt`;
+        break;
+      case 'week':
+        selectClause = `YEARWEEK(v.created_at, 3) AS bucket,
+                        MIN(DATE_FORMAT(v.created_at, '%Y-%m-%d')) AS start,
+                        MAX(DATE_FORMAT(v.created_at, '%Y-%m-%d')) AS end,
+                        COUNT(*) AS cnt`;
+        break;
+      default: // 'day'
+        selectClause = `DATE_FORMAT(v.created_at, '%Y-%m-%d') AS bucket, COUNT(*) AS cnt`;
+        break;
     }
 
-    const rows = await db.query(`SELECT * FROM V_VIOLATIONS_BY_DATE`);
+    // 2. WHERE 절 동적 구성
+    const where = [];
+    const params = [];
+    if (range) {
+      where.push('v.created_at >= ? AND v.created_at <= ?');
+      params.push(range.start, range.end);
+    }
+    if (parkingIdx !== null) {
+      where.push('d.parking_idx = ?');
+      params.push(parkingIdx);
+    }
+    const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+    // 3. 최종 쿼리 조립 및 실행
+    const sql = `
+      SELECT ${selectClause}
+        FROM tb_violation v
+        JOIN tb_detection d ON d.ve_detection_idx = v.ve_detection_idx
+      ${whereSql}
+       GROUP BY bucket
+       ORDER BY bucket
+    `;
+
+    const rows = await db.query(sql, params);
     res.json(rows);
+
   } catch (err) {
     console.error(`Error while getting violation stats by date`, err.message);
     next(err);
@@ -103,6 +150,15 @@ async function getViolationsByLocation(req, res, next) {
   try {
     const { date, from, to } = req.query || {};
     const range = buildRange({ date, from, to });
+    if ((date || from || to) && !range) {
+      return res.status(400).json({
+        error: {
+          code: 'BAD_REQUEST',
+          message: 'Invalid date/from/to format. Use YYYY-MM-DD or YYYY-MM-DD HH:mm:ss',
+          params: { date, from, to },
+        },
+      });
+    }
     const parkingIdx = parseParkingIdx(req);
 
     if (range) {
@@ -184,4 +240,3 @@ module.exports = {
   getViolationsByLocation,
   getViolationsByHour,
 };
-

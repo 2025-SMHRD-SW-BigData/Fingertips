@@ -18,6 +18,9 @@ router.get('/', async (req, res, next) => {
     const offset = (page - 1) * limit;
     const search = (req.query.search || '').trim();
     const date = (req.query.date || '').trim();
+    const from = (req.query.from || '').trim();
+    const to = (req.query.to || '').trim();
+    const vtype = (req.query.type || '').trim();
     const parkingIdx = parseInt(req.query.parking_idx, 10);
 
     const where = [];
@@ -31,9 +34,21 @@ router.get('/', async (req, res, next) => {
       where.push('DATE(v.created_at) = ?');
       params.push(date);
     }
+    if (from) {
+      where.push('DATE(v.created_at) >= ?');
+      params.push(from);
+    }
+    if (to) {
+      where.push('DATE(v.created_at) <= ?');
+      params.push(to);
+    }
     if (Number.isFinite(parkingIdx)) {
       where.push('d.parking_idx = ?');
       params.push(parkingIdx);
+    }
+    if (vtype) {
+      where.push('v.violation_type = ?');
+      params.push(vtype);
     }
     const status = (req.query.status || '').toString().trim().toLowerCase();
     if (status === 'pending' || status === 'unprocessed') {

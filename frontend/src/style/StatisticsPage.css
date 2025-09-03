@@ -151,3 +151,19 @@
   max-width: 240px;
   white-space: nowrap;
 }
+
+/* Granularity toggle */
+.granularity-toggle { display: inline-flex; gap: 8px; }
+.granularity-toggle .toggle {
+  background: #444c5c;
+  color: white;
+  border: 1px solid #4a5568;
+  padding: 6px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.granularity-toggle .toggle.active {
+  background: #3182ce;
+  border-color: #3182ce;
+}
