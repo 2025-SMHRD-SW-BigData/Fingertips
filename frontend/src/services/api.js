@@ -39,7 +39,13 @@ async function request(endpoint, options = {}) {
   }
 
   if (!res.ok) {
-    const message = (data && (data.message || data.error)) || `HTTP ${res.status}`;
+    const message = (
+      (data && (
+        (typeof data.message === 'string' && data.message) ||
+        (typeof data.error === 'string' && data.error) ||
+        (data.error && typeof data.error.message === 'string' && data.error.message)
+      )) || `HTTP ${res.status}`
+    );
     const err = new Error(message);
     err.status = res.status;
     err.data = data;

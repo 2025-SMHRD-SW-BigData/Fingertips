@@ -98,8 +98,7 @@ const StatisticsPage = () => {
     const { date, from, to } = filters;
     const params = {};
     if (date) params.date = date;
-    if (from) params.from = from;
-    if (to) params.to = to;
+    else if (from && to) { params.from = from; params.to = to; }
 
     // Type: handled by a separate effect using chartRange so it matches date chart window
 
@@ -193,14 +192,16 @@ const StatisticsPage = () => {
     if (chartRange.from && chartRange.to) {
       base.from = chartRange.from;
       base.to = chartRange.to;
-    } else {
-      if (filters.date) base.date = filters.date;
-      if (filters.from) base.from = filters.from;
-      if (filters.to) base.to = filters.to;
+    } else if (filters.date) {
+      base.date = filters.date;
+    } else if (filters.from && filters.to) {
+      base.from = filters.from;
+      base.to = filters.to;
     }
     // Sanitize params: only allow valid date or datetime
     if (base.from && !(onlyDate(base.from) || onlyDateTime(base.from))) delete base.from;
     if (base.to && !(onlyDate(base.to) || onlyDateTime(base.to))) delete base.to;
+    if ((base.from && !base.to) || (base.to && !base.from)) { delete base.from; delete base.to; }
     setByType((s) => ({ ...s, loading: true, error: null }));
     getStatsByType(base)
       .then((rows) => {

@@ -120,9 +120,35 @@ const MainpageMap = ({ parking_idx, maxWidth }) => {
     };
   }, [maxWidth, isP2]);
 
+  const [stageHeight, setStageHeight] = useState(0);
+
+  // Robust height calculation to keep base SVG and overlay aligned even if CSS aspect-ratio is not supported
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ratio = viewBox.height / viewBox.width;
+    const update = () => {
+      const w = el.clientWidth || el.getBoundingClientRect().width || 0;
+      setStageHeight(Math.max(1, Math.round(w * ratio)));
+    };
+    let ro;
+    if (typeof window !== 'undefined' && 'ResizeObserver' in window) {
+      ro = new ResizeObserver(update);
+      try { ro.observe(el); } catch (_) {}
+    } else if (typeof window !== 'undefined') {
+      window.addEventListener('resize', update);
+    }
+    update();
+    return () => {
+      if (ro) { try { ro.disconnect(); } catch (_) {} }
+      else if (typeof window !== 'undefined') { window.removeEventListener('resize', update); }
+    };
+  }, [viewBox]);
+
   const stageStyle = useMemo(() => ({
     aspectRatio: `${viewBox.width} / ${viewBox.height}`,
-  }), [viewBox]);
+    height: stageHeight ? `${stageHeight}px` : undefined,
+  }), [viewBox, stageHeight]);
 
   return (
     <div className="parking-map-container mainmap" style={containerStyle} ref={containerRef}>
@@ -135,18 +161,28 @@ const MainpageMap = ({ parking_idx, maxWidth }) => {
           aria-label="Parking slots overlay"
         >
           <g className="slots">
-            {mergedSlots.map((s) => (
-              <rect
-                key={s.id}
-                x={s.x}
-                y={s.y}
-                width={s.width}
-                height={s.height}
-                className={`slot ${s.type || 'general'} ${s.occupied ? 'occupied' : 'free'}`}
-              >
-                <title>{`${s.id}: ${s.type} – ${s.occupied ? 'occupied' : 'available'}`}</title>
-              </rect>
-            ))}
+            {mergedSlots.map((s) => {
+              const fill = s.occupied
+                ? 'rgba(229, 62, 62, 0.75)'
+                : (s.type === 'disabled' ? 'rgba(49, 130, 206, 0.55)' : 'rgba(56, 161, 105, 0.60)');
+              return (
+                <rect
+                  key={s.id}
+                  x={s.x}
+                  y={s.y}
+                  width={s.width}
+                  height={s.height}
+                  className={`slot ${s.type || 'general'} ${s.occupied ? 'occupied' : 'free'}`}
+                  fill={fill}
+                  stroke="rgba(255,255,255,0.85)"
+                  strokeWidth={1}
+                  rx={4}
+                  ry={4}
+                >
+                  <title>{`${s.id}: ${s.type} - ${s.occupied ? 'occupied' : 'available'}`}</title>
+                </rect>
+              );
+            })}
           </g>
         </svg>
       </div>
@@ -155,3 +191,4 @@ const MainpageMap = ({ parking_idx, maxWidth }) => {
 };
 
 export default MainpageMap;
+
