@@ -80,6 +80,9 @@ export const changePassword = (payload = {}) =>
     body: JSON.stringify(payload),
   });
 
+// Admin profile
+export const getAdminMe = (adminId) => request(`/auth/me?admin_id=${encodeURIComponent(adminId)}`);
+
 // Parking list
 export const getParkings = () => request('/parking');
 
@@ -271,6 +274,7 @@ export const getParkingSummaryByLot = (params = {}) => {
 export default {
   login,
   register,
+  getAdminMe,
   getDashboardSummary,
   getParkingStatus,
   getRecentViolations,

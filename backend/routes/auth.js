@@ -9,12 +9,12 @@ router.post('/register', async (req, res) => {
   try {
     const { admin_id, password, name, phone, email } = req.body || {};
     if (!admin_id || !password || !name || !email) {
-      return res.status(400).json({ message: '필수 정보(id, password, name, email)가 필요합니다.' });
+      return res.status(400).json({ message: '필수 정보(id, password, name, email)가 필요합니다' });
     }
 
     const [rows] = await dbPool.query('SELECT admin_id FROM tb_admin WHERE admin_id = ?', [admin_id]);
     if (rows.length > 0) {
-      return res.status(409).json({ message: '이미 존재하는 사용자 ID입니다.' });
+      return res.status(409).json({ message: '이미 존재하는 사용자 ID입니다' });
     }
 
     const passwordHash = await argon2.hash(password, {
@@ -29,14 +29,14 @@ router.post('/register', async (req, res) => {
       [admin_id, passwordHash, name, phone || '', email, 'admin']
     );
 
-    return res.status(201).json({ message: '등록이 완료되었습니다.' });
+    return res.status(201).json({ message: '등록이 완료되었습니다' });
   } catch (err) {
     console.error('Register Error:', err);
     return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 });
 
-// 2) 로그인 (토큰 발급 없이 성공 응답)
+// 2) 로그인 (토큰 발급 없이 최소 정보 응답)
 router.post('/login', async (req, res) => {
   try {
     const { admin_id, password } = req.body || {};
@@ -58,7 +58,16 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: '자격 증명 오류' });
     }
 
-    // 세션/토큰 없이 클라이언트가 필요로 하는 최소 정보만 반환
+    // Update last login timestamp; proceed even if it fails
+    try {
+      await dbPool.query(
+        'UPDATE tb_admin SET last_logged_at = NOW() WHERE admin_id = ? LIMIT 1',
+        [admin_id]
+      );
+    } catch (e) {
+      console.error('Failed to update last_logged_at for', admin_id, e && e.message);
+    }
+
     return res.status(200).json({ message: '로그인 성공', adminName: user.name, admin_id: user.admin_id, role: user.role || 'admin' });
   } catch (err) {
     console.error('Login Error:', err);
@@ -71,7 +80,7 @@ router.post('/change-password', async (req, res) => {
   try {
     const { admin_id, current_password, new_password } = req.body || {};
     if (!admin_id || !current_password || !new_password) {
-      return res.status(400).json({ message: '필수 항목(admin_id, current_password, new_password)이 누락되었습니다.' });
+      return res.status(400).json({ message: '필수 파라미터(admin_id, current_password, new_password)가 누락되었습니다' });
     }
 
     const [rows] = await dbPool.query(
@@ -104,25 +113,27 @@ router.post('/change-password', async (req, res) => {
   }
 });
 
-module.exports = router;
-// 경량 버전 내 정보 조회 (JWT 없이 admin_id 전달)
+// 경량 버전 내 정보 조회
 router.get('/me', async (req, res) => {
   try {
     const adminId = (req.query.admin_id || req.headers['x-admin-id'] || '').toString().trim();
     if (!adminId) {
-      return res.status(400).json({ message: 'admin_id가 필요합니다.' });
+      return res.status(400).json({ message: 'admin_id가 필요합니다' });
     }
     const [rows] = await dbPool.query(
-      'SELECT admin_id, name, role FROM tb_admin WHERE admin_id = ? LIMIT 1',
+      'SELECT admin_id, name, role, last_logged_at FROM tb_admin WHERE admin_id = ? LIMIT 1',
       [adminId]
     );
     if (!rows.length) {
       return res.status(404).json({ message: '관리자를 찾을 수 없습니다.' });
     }
-    const { admin_id, name, role } = rows[0];
-    return res.status(200).json({ admin_id, name, role });
+    const { admin_id, name, role, last_logged_at } = rows[0];
+    return res.status(200).json({ admin_id, name, role, last_logged_at });
   } catch (err) {
     console.error('Me Error:', err);
     return res.status(500).json({ message: '서버 오류' });
   }
 });
+
+module.exports = router;
+
