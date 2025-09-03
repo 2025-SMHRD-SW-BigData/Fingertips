@@ -1,0 +1,15 @@
+.map-canvas {
+  width: 100%; /* 컨테이너는 부모 요소의 너비를 꽉 채우도록 설정 */
+  max-width: 1200px; /* 너무 커지지 않게 최대 너비 설정 (선택 사항) */
+  margin: 0 auto; /* 가운데 정렬 (선택 사항) */
+}
+
+.map-canvas svg {
+  width: 100%; /* 너비를 컨테이너에 100% 맞춤 */
+  height: auto; /* 중요! 높이를 '자동'으로 설정해서 viewBox 비율을 따르도록 강제 */
+  display: block; /* 이미지 하단의 미세한 공백 제거 */
+}
+
+/* Optional: center container content */
+.mainmap { gap: 0; }
+
