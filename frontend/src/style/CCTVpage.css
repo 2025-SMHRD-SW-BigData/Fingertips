@@ -114,3 +114,71 @@
     color: white;
     font-size: 1em;
 }
+
+.cctv-placeholder {
+    grid-column: 1 / -1;
+    /* 전체 너비 차지 */
+    text-align: center;
+    padding: 50px;
+    color: #a0aec0;
+    font-size: 1.2em;
+    background-color: #3A4460;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+}
+
+.modal-content {
+    position: relative;
+    background-color: #2B3341;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    max-width: 90%;
+    max-height: 90%;
+    overflow: auto;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 24px;
+    color: #E2E8F0;
+}
+
+.header .parking-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.header .parking-controls select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #4a5568;
+    background-color: #3b4252;
+    color: white;
+    font-size: 14px;
+}
+
+.header .parking-controls select:focus {
+    outline: none;
+    border-color: #63b3ed;
+}
+
+.cctv-management-container {
+    padding: 20px;
+    background-color: #2B3341;
+    border-radius: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
