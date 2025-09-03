@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../style/mainpage.css';
 import '../style/StatisticsPage.css';
 import Sidebar from '../component/Sidebar';
@@ -24,6 +25,47 @@ const StatisticsPage = () => {
   const [ttType, setTtType] = useState({ visible: false, x: 0, y: 0, content: null, pinned: false });
   const [ttDate, setTtDate] = useState({ visible: false, x: 0, y: 0, content: null, pinned: false });
   const [ttLoc, setTtLoc] = useState({ visible: false, x: 0, y: 0, content: null, pinned: false });
+  const [granularity, setGranularity] = useState('day');
+  const [chartRange, setChartRange] = useState({ from: '', to: '' });
+  const navigate = useNavigate();
+
+  // Helpers for date formats and YEARWEEK conversion
+  const onlyDate = (v) => /^\d{4}-\d{2}-\d{2}$/.test(String(v));
+  const onlyDateTime = (v) => /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(String(v));
+  // Convert YEARWEEK(ISO, mode 3) to { from: 'YYYY-MM-DD', to: 'YYYY-MM-DD' }
+  const yearWeekToRange = (yw) => {
+    const s = String(yw);
+    if (!/^\d{6}$/.test(s)) return null; // e.g., 202530
+    const year = parseInt(s.slice(0, 4), 10);
+    const week = parseInt(s.slice(4), 10);
+    if (!Number.isFinite(year) || !Number.isFinite(week) || week < 1 || week > 53) return null;
+    // ISO week: week 1 contains Jan 4th; Monday as first day
+    const jan4 = new Date(Date.UTC(year, 0, 4));
+    const jan4Dow = jan4.getUTCDay() || 7; // Sun=7
+    const mondayWeek1 = new Date(jan4);
+    mondayWeek1.setUTCDate(jan4.getUTCDate() - (jan4Dow - 1));
+    const monday = new Date(mondayWeek1);
+    monday.setUTCDate(mondayWeek1.getUTCDate() + (week - 1) * 7);
+    const sunday = new Date(monday);
+    sunday.setUTCDate(monday.getUTCDate() + 6);
+    const toDate = (d) => d.toISOString().slice(0, 10);
+    return { from: toDate(monday), to: toDate(sunday) };
+  };
+
+  // Week-of-month label like "n월 m주" using the week's start date
+  const weekOfMonthLabel = (ymd) => {
+    const m = String(ymd || '');
+    const m2 = m.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m2) return '';
+    const y = parseInt(m2[1], 10);
+    const mon = parseInt(m2[2], 10);
+    const day = parseInt(m2[3], 10);
+    if (!Number.isFinite(y) || !Number.isFinite(mon) || !Number.isFinite(day)) return '';
+    const first = new Date(y, mon - 1, 1);
+    const offset = (first.getDay() + 6) % 7; // Monday=0
+    const week = Math.floor((day + offset - 1) / 7) + 1;
+    return `${mon}월 ${week}주`;
+  };
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -59,14 +101,7 @@ const StatisticsPage = () => {
     if (from) params.from = from;
     if (to) params.to = to;
 
-    // Type
-    setByType((s) => ({ ...s, loading: true, error: null }));
-    getStatsByType(params)
-      .then((rows) => {
-        if (!alive) return;
-        setByType({ data: Array.isArray(rows) ? rows : [], loading: false, error: null });
-      })
-      .catch((err) => alive && setByType({ data: [], loading: false, error: err.message || 'Failed to load' }));
+    // Type: handled by a separate effect using chartRange so it matches date chart window
 
     // Location: only load when ALL (no parking_idx selected)
     if (!parkingIdx) {
@@ -81,10 +116,10 @@ const StatisticsPage = () => {
       setByLocation({ data: [], loading: false, error: null });
     }
 
-    // Always use daily time series, filtered by date range if provided
+    // Time series, filtered by date range/group if provided
     setByHour({ data: [], loading: false, error: null });
     setByDate((s) => ({ ...s, loading: true, error: null }));
-    getStatsByDate(params)
+    getStatsByDate({ ...params, group: granularity })
       .then((rows) => {
         if (!alive) return;
         setByDate({ data: Array.isArray(rows) ? rows : [], loading: false, error: null });
@@ -94,7 +129,87 @@ const StatisticsPage = () => {
     return () => {
       alive = false;
     };
-  }, [filters.date, filters.from, filters.to, parkingIdx]);
+  }, [filters.date, filters.from, filters.to, parkingIdx, granularity]);
+
+  // Compute actual time window shown in the date chart and sync to type chart
+  useEffect(() => {
+    const rows = byDate.data;
+    if (!Array.isArray(rows) || rows.length === 0) {
+      setChartRange({ from: '', to: '' });
+      return;
+    }
+    // Prefer 'bucket' for date, and 'start'/'end' when weekly
+    const key = (rows[0] && ('bucket' in rows[0] ? 'bucket' : pickKeys(rows[0], ['violation_date', 'date', 'day', 'created_at']))) || 'bucket';
+    let from = '';
+    let to = '';
+    if (granularity === 'day') {
+      const list = rows.map((r) => String(r[key]).slice(0, 10));
+      const last = list.slice(-7);
+      from = last[0] || list[0];
+      to = last[last.length - 1] || list[list.length - 1];
+    } else if (granularity === 'week') {
+      const first = rows[0];
+      const lastRow = rows[rows.length - 1];
+      from = String(first.start || '').slice(0, 10);
+      to = String((lastRow && lastRow.end) || '').slice(0, 10);
+      // Fallback if start/end not present: try converting YEARWEEK bucket to real dates
+      if (!from || !to) {
+        const toRange = (val) => {
+          const raw = String(val || '');
+          if (onlyDate(raw)) return { from: raw, to: raw };
+          if (/^\d{6}$/.test(raw)) return yearWeekToRange(raw);
+          return null;
+        };
+        const r1 = toRange(first && first[key]);
+        const r2 = toRange(lastRow && lastRow[key]);
+        from = (r1 && r1.from) || from || '';
+        to = (r2 && r2.to) || to || '';
+      }
+    } else if (granularity === 'month') {
+      const first = String(rows[0][key] || ''); // YYYY-MM
+      const last = String(rows[rows.length - 1][key] || '');
+      if (/^\d{4}-\d{2}$/.test(first)) {
+        from = `${first}-01`;
+      }
+      if (/^\d{4}-\d{2}$/.test(last)) {
+        const [y, m] = last.split('-').map((v) => parseInt(v, 10));
+        const lastDay = new Date(y, m, 0).getDate();
+        to = `${last}-${String(lastDay).padStart(2, '0')}`;
+      }
+      if (!from || !to) {
+        // Fallback to list bounds
+        const list = rows.map((r) => String(r[key]));
+        from = (list[0] || '').slice(0, 10);
+        to = (list[list.length - 1] || '').slice(0, 10);
+      }
+    }
+    setChartRange({ from, to });
+  }, [byDate.data, granularity]);
+
+  // Fetch type chart according to computed chartRange to align with date chart
+  useEffect(() => {
+    let alive = true;
+    const base = {};
+    if (chartRange.from && chartRange.to) {
+      base.from = chartRange.from;
+      base.to = chartRange.to;
+    } else {
+      if (filters.date) base.date = filters.date;
+      if (filters.from) base.from = filters.from;
+      if (filters.to) base.to = filters.to;
+    }
+    // Sanitize params: only allow valid date or datetime
+    if (base.from && !(onlyDate(base.from) || onlyDateTime(base.from))) delete base.from;
+    if (base.to && !(onlyDate(base.to) || onlyDateTime(base.to))) delete base.to;
+    setByType((s) => ({ ...s, loading: true, error: null }));
+    getStatsByType(base)
+      .then((rows) => {
+        if (!alive) return;
+        setByType({ data: Array.isArray(rows) ? rows : [], loading: false, error: null });
+      })
+      .catch((err) => alive && setByType({ data: [], loading: false, error: err.message || 'Failed to load' }));
+    return () => { alive = false; };
+  }, [chartRange.from, chartRange.to, filters.date, filters.from, filters.to]);
 
   useEffect(() => {
     const handler = (e) => {
@@ -117,19 +232,53 @@ const StatisticsPage = () => {
   const dateChart = useMemo(() => {
     const rows = byDate.data;
     if (!rows?.length) return [];
-    const labelKey = pickKeys(rows[0], ['violation_date', 'date', 'day', 'created_at']);
     const valueKey = pickKeys(rows[0], ['cnt', 'count', 'total', 'value']);
+    const key = (rows[0] && ('bucket' in rows[0] ? 'bucket' : pickKeys(rows[0], ['violation_date', 'date', 'day', 'created_at']))) || 'bucket';
 
     const { from, to } = filters;
-    const filteredRows = rows.filter(r => {
-      const rowDate = String(r[labelKey]).slice(0, 10);
-      if (from && rowDate < from) return false;
-      if (to && rowDate > to) return false;
+    const filtered = rows.filter((r) => {
+      const raw = String(r[key]);
+      const dateKey = raw.length >= 10 ? raw.slice(0, 10) : raw;
+      if (from && dateKey.length >= 10 && dateKey < from) return false;
+      if (to && dateKey.length >= 10 && dateKey > to) return false;
       return true;
     });
 
-    return filteredRows.map((r) => ({ label: String(r[labelKey]).slice(0, 10), value: Number(r[valueKey] ?? 0) }));
-  }, [byDate.data, filters.from, filters.to]);
+    const mapped = filtered.map((r) => {
+      const raw = String(r[key]);
+      let label = raw;
+      let meta = {};
+      if (granularity === 'day') {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+          label = raw.slice(5);
+          meta = { date: raw.slice(0, 10) };
+        }
+      } else if (granularity === 'month') {
+        if (/^\d{4}-\d{2}$/.test(raw)) {
+          label = raw.slice(5);
+          const y = raw.slice(0, 4);
+          const m = raw.slice(5, 7);
+          const start = `${y}-${m}-01`;
+          const lastDay = new Date(parseInt(y, 10), parseInt(m, 10), 0).getDate();
+          const end = `${y}-${m}-${String(lastDay).padStart(2, '0')}`;
+          meta = { from: start, to: end };
+        }
+      } else if (granularity === 'week') {
+        let start = r.start;
+        if (!start && r.bucket && /^\d{6}$/.test(String(r.bucket))) {
+          const range = yearWeekToRange(r.bucket);
+          start = range && range.from;
+        }
+        const wlabel = start ? weekOfMonthLabel(String(start).slice(0, 10)) : '';
+        if (wlabel) label = wlabel;
+        const end = r.end || (r.bucket && /^\d{6}$/.test(String(r.bucket)) ? (yearWeekToRange(r.bucket)?.to) : undefined);
+        if (start && end) meta = { from: String(start).slice(0, 10), to: String(end).slice(0, 10) };
+      }
+      return { label, value: Number(r[valueKey] ?? 0), meta };
+    });
+    if (granularity === 'day' && mapped.length > 7) return mapped.slice(-7);
+    return mapped;
+  }, [byDate.data, filters.from, filters.to, granularity]);
 
   const hourChart = useMemo(() => {
     if (!filters.date) return [];
@@ -187,18 +336,7 @@ const StatisticsPage = () => {
               <input type="date" name="from" value={filters.from} onChange={handleFilterChange} />
               <label style={{ margin: '0 8px' }}>To:</label>
               <input type="date" name="to" value={filters.to} onChange={handleFilterChange} />
-              <select name="place" value={filters.place} onChange={handleFilterChange}>
-                <option value="">장소 선택</option>
-                <option value="entrance">출구</option>
-                <option value="parking_lot">주차장</option>
-                <option value="disabled_area">장애인구역</option>
-              </select>
-              <select name="type" value={filters.type} onChange={handleFilterChange}>
-                <option value="">위반 유형 선택</option>
-                <option value="illegal_parking">불법 주정차</option>
-                <option value="speeding">과속</option>
-                <option value="signal_violation">신호 위반</option>
-              </select>
+
             </div>
             <div className="charts">
               <div
@@ -248,7 +386,12 @@ const StatisticsPage = () => {
                         onMouseLeave={() => setTtType((s) => (s.pinned ? s : { ...s, visible: false }))}
                         onClick={(e) => {
                           e.stopPropagation();
-                          setTtType((s) => ({ ...s, pinned: !s.pinned, visible: true }));
+                          const qs = new URLSearchParams();
+                          if (chartRange.from) qs.set('from', chartRange.from);
+                          if (chartRange.to) qs.set('to', chartRange.to);
+                          if (d.label) qs.set('type', d.label);
+                          qs.set('hl', 'type');
+                          navigate(`/violations?${qs.toString()}`);
                         }}
                       >
                         <div className="bar-value">{d.value}</div>
@@ -360,7 +503,7 @@ const StatisticsPage = () => {
                 <Tooltip visible={ttLoc.visible} x={ttLoc.x} y={ttLoc.y}>{ttLoc.content}</Tooltip>
               </div>
               <div className="chart">
-                <h2>{filters.date ? '시간별' : '일자별'}</h2>
+                <h2>{granularity === 'day' ? '일별' : granularity === 'week' ? '주별' : '월별'}</h2>
                 {(() => {
                   const loading = byDate.loading;
                   const error = byDate.error;
@@ -417,18 +560,39 @@ const StatisticsPage = () => {
                             onMouseLeave={() => setTtDate((s) => (s.pinned ? s : { ...s, visible: false }))}
                             onClick={(e) => {
                               e.stopPropagation();
+                              // Navigate to violations filtered by the selected time bucket
+                              const qs = new URLSearchParams();
+                              if (granularity === 'day' && d.meta?.date) {
+                                qs.set('date', d.meta.date);
+                                qs.set('hl', 'date');
+                              } else if (granularity === 'week' && d.meta?.from && d.meta?.to) {
+                                qs.set('from', d.meta.from);
+                                qs.set('to', d.meta.to);
+                                qs.set('hl', 'range');
+                              } else if (granularity === 'month' && d.meta?.from && d.meta?.to) {
+                                qs.set('from', d.meta.from);
+                                qs.set('to', d.meta.to);
+                                qs.set('hl', 'range');
+                              }
+                              navigate(`/violations?${qs.toString()}`);
                               setTtDate((s) => ({ ...s, pinned: !s.pinned, visible: true }));
                             }}
-                          />
-                          <text x={toX(i)} y={H - 4} textAnchor="middle" fontSize="10" fill="#cbd5e1">{d.label}</text>
-                        </g>
-                      ))}
-                    </svg>
-                  );
-                })()}
-                <Tooltip visible={ttDate.visible} x={ttDate.x} y={ttDate.y}>{ttDate.content}</Tooltip>
-              </div>
+                      />
+                      <text x={toX(i)} y={H - 4} textAnchor="middle" fontSize="10" fill="#cbd5e1">{d.label}</text>
+                    </g>
+                  ))}
+                </svg>
+              );
+            })()}
+            <Tooltip visible={ttDate.visible} x={ttDate.x} y={ttDate.y}>{ttDate.content}</Tooltip>
+            <div className="granularity-toggle" role="group" aria-label="Time grouping" style={{ marginTop: 10 }}>
+              <button type="button" className={granularity === 'day' ? 'toggle active' : 'toggle'} aria-pressed={granularity === 'day'} onClick={() => setGranularity('day')}>일별</button>
+              <button type="button" className={granularity === 'week' ? 'toggle active' : 'toggle'} aria-pressed={granularity === 'week'} onClick={() => setGranularity('week')}>주별</button>
+              <button type="button" className={granularity === 'month' ? 'toggle active' : 'toggle'} aria-pressed={granularity === 'month'} onClick={() => setGranularity('month')}>월별</button>
             </div>
+          </div>
+            </div>
+
           </div>
         </div>
       </div>

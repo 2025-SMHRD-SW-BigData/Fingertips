@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import '../style/mainpage.css';
 import Sidebar from '../component/Sidebar';
@@ -19,6 +19,11 @@ const ViolationPage = () => {
   const [marking, setMarking] = useState({});
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
+  const [dateFilter, setDateFilter] = useState('');
+  const [rangeFilter, setRangeFilter] = useState({ from: '', to: '' });
+  const [typeFilter, setTypeFilter] = useState('');
+  const [highlightSet, setHighlightSet] = useState(() => new Set());
+  const [highlightMode, setHighlightMode] = useState(''); // '', 'type', 'date', 'range'
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -32,7 +37,15 @@ const ViolationPage = () => {
     setLoading(true);
     setError('');
     try {
-      const { items } = await getViolations({ page: 1, limit: 20, search: searchQuery });
+      const { items } = await getViolations({
+        page: 1,
+        limit: 20,
+        search: searchQuery,
+        date: dateFilter || undefined,
+        from: rangeFilter.from || undefined,
+        to: rangeFilter.to || undefined,
+        type: typeFilter || undefined,
+      });
       setRows(Array.isArray(items) ? items : []);
     } catch (e) {
       setError(e?.message || 'Failed to load violations');
@@ -43,17 +56,99 @@ const ViolationPage = () => {
   };
 
   useEffect(() => {
-    // parse search from URL
+    // parse filters from URL
     try {
       const sp = new URLSearchParams(location.search);
       const s = (sp.get('search') || '').trim();
+      const d = (sp.get('date') || '').trim();
+      const f = (sp.get('from') || '').trim();
+      const t = (sp.get('to') || '').trim();
+      const vt = (sp.get('type') || '').trim();
+      const hl = (sp.get('hl') || '').trim();
       setSearchQuery(s);
+      setDateFilter(d);
+      setRangeFilter({ from: f, to: t });
+      setTypeFilter(vt);
+      setHighlightMode(hl);
     } catch (_) {}
     load();
     const handler = () => load();
     window.addEventListener('parking-change', handler);
     return () => window.removeEventListener('parking-change', handler);
   }, [location.search]);
+
+  // Reload when filters change (ensures state is applied before fetching)
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, dateFilter, rangeFilter.from, rangeFilter.to, typeFilter]);
+
+  // Compute which rows should be highlighted based on current filters
+  // Convert DB timestamp string to local YYYY-MM-DD safely
+  const toLocalYMD = (s) => {
+    try {
+      const str = String(s || '');
+      if (!str) return '';
+      const norm = str.includes('T') ? str : str.replace(' ', 'T');
+      const d = new Date(norm);
+      if (Number.isNaN(d.getTime())) return str.slice(0, 10);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    } catch {
+      const str = String(s || '');
+      return str.slice(0, 10);
+    }
+  };
+
+  const computeHighlights = useMemo(() => {
+    const s = (searchQuery || '').toLowerCase();
+    const d = (dateFilter || '').slice(0, 10);
+    const f = (rangeFilter.from || '').slice(0, 10);
+    const t = (rangeFilter.to || '').slice(0, 10);
+    const vt = typeFilter || '';
+    return (list) => {
+      const set = new Set();
+      list.forEach((r) => {
+        const vDate = (r.violation_date || '').slice(0, 10);
+        const vLocal = toLocalYMD(r.violation_date);
+        const vType = r.violation_type || '';
+        const veNo = (r.ve_number || '').toLowerCase();
+        const loc = (r.parking_loc || '').toLowerCase();
+        let match = false;
+        // Explicit highlight mode takes precedence
+        if (highlightMode === 'type' && vt) {
+          match = vType === vt;
+        } else if (highlightMode === 'date' && d) {
+          // Compare by local day so what user sees matches highlight
+          match = vLocal === d;
+        } else if (highlightMode === 'range' && f && t) {
+          // Compare local day within the provided date bounds
+          match = (vLocal >= f && vLocal <= t);
+        } else {
+          // Fallback heuristic
+          if (vt) match ||= vType === vt;
+          if (d) match ||= (vLocal === d);
+          if (f && t) match ||= (vLocal >= f && vLocal <= t);
+          if (!vt && !d && !(f && t) && s) match ||= (veNo.includes(s) || loc.includes(s));
+        }
+        if (match) set.add(r.violation_idx);
+      });
+      return set;
+    };
+  }, [searchQuery, dateFilter, rangeFilter.from, rangeFilter.to, typeFilter, highlightMode]);
+
+  // Apply highlight shortly after rows load
+  useEffect(() => {
+    if (!rows || rows.length === 0) { setHighlightSet(new Set()); return; }
+    const set = computeHighlights(rows);
+    setHighlightSet(set);
+    if (set.size > 0) {
+      const id = setTimeout(() => setHighlightSet(new Set()), 2500);
+      return () => clearTimeout(id);
+    }
+  }, [rows, computeHighlights]);
 
   const openModal = (id) => {
     setModalId(id);
@@ -143,7 +238,7 @@ const ViolationPage = () => {
                     const isDone = !!r.admin_status;
                     const busy = !!marking[r.violation_idx];
                     return (
-                      <tr key={r.violation_idx}>
+                      <tr key={r.violation_idx} className={highlightSet.has(r.violation_idx) ? 'highlight-blink' : ''}>
                         <td>{r.ve_number}</td>
                         <td>{r.parking_loc || r.space_id || '-'}</td>
                         <td>{r.violation_type || '-'}</td>

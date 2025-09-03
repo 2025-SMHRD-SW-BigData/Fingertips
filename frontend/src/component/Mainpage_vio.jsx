@@ -38,25 +38,21 @@ const Mainpage_vio = () => {
     <div className='vio box-style'>
       <div className="header">
         <h3>최근 위반</h3>
-        <Link to="/violations" className="all-btn" style={{ textDecoration: 'none' }} >전체 보기</Link>
+        <Link to="/violations" className="all-btn" style={{ textDecoration: 'none' }}>전체 보기</Link>
       </div>
       <table className="data-table">
         <colgroup>
-          <col style={{width: "25%"}} />
-          <col style={{width: "15%"}} />
-          <col style={{width: "20%"}} />
-          <col style={{width: "15%"}} />
-          <col style={{width: "15%"}} />
-          <col style={{width: "10%"}} />
+          <col style={{ width: '30%' }} />
+          <col style={{ width: '25%' }} />
+          <col style={{ width: '25%' }} />
+          <col style={{ width: '20%' }} />
         </colgroup>
         <thead>
           <tr>
             <th>차량번호</th>
             <th>구역</th>
-            <th>사유</th>
+            <th>유형</th>
             <th>시각</th>
-            <th>상태</th>
-            <th>작업</th>
           </tr>
         </thead>
         <tbody>
@@ -66,17 +62,11 @@ const Mainpage_vio = () => {
               <td>{row.parking_loc}</td>
               <td>{row.violation_type}</td>
               <td>{formatTime(row.violation_date)}</td>
-              <td>
-                <span className={`status ${row.admin_status || '미처리'}`}>{row.admin_status || '미처리'}</span>
-              </td>
-              <td>
-                <button className="action-btn">보기</button>
-              </td>
             </tr>
           ))}
           {rows.length === 0 && (
             <tr>
-              <td colSpan={6} style={{ textAlign: 'center', color: '#ccc' }}>표시할 데이터가 없습니다</td>
+              <td colSpan={4} style={{ textAlign: 'center', color: '#ccc' }}>표시할 데이터가 없습니다</td>
             </tr>
           )}
         </tbody>
@@ -86,3 +76,4 @@ const Mainpage_vio = () => {
 };
 
 export default Mainpage_vio;
+
