@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { register as registerApi } from '../services/api';
+import '../style/AdminSignupPage.css';
+import { FiUser, FiLock, FiPhone, FiMail } from 'react-icons/fi';
 
 const phoneFormat = (v) => {
   const digits = (v || '').replace(/\D/g, '');
@@ -84,44 +86,45 @@ export default function AdminSignup() {
   };
 
   return (
-    <div className="card">
-      <h1>관리자 회원가입</h1>
-      <form onSubmit={onSubmit} noValidate>
-        <div className="field">
-          <label>아이디</label>
-          <input name="admin_id" value={form.admin_id} onChange={onChange} placeholder="아이디" required />
-          {errors.admin_id && <span className="error">{errors.admin_id}</span>}
-        </div>
-        <div className="field">
-          <label>비밀번호</label>
-          <input type="password" name="password" value={form.password} onChange={onChange} placeholder="비밀번호(8자 이상)" required />
-          {errors.password && <span className="error">{errors.password}</span>}
-        </div>
-        <div className="field">
-          <label>비밀번호 확인</label>
-          <input type="password" name="password_confirm" value={form.password_confirm} onChange={onChange} placeholder="비밀번호 확인" required />
-          {errors.password_confirm && <span className="error">{errors.password_confirm}</span>}
-        </div>
-        <div className="field">
-          <label>이름</label>
-          <input name="name" value={form.name} onChange={onChange} placeholder="이름" required />
-          {errors.name && <span className="error">{errors.name}</span>}
-        </div>
-        <div className="field">
-          <label>전화번호</label>
-          <input inputMode="numeric" name="phone" value={form.phone} onChange={onChange} placeholder="010-1234-5678" required />
-          {errors.phone && <span className="error">{errors.phone}</span>}
-        </div>
-        <div className="field">
-          <label>이메일</label>
-          <input type="email" name="email" value={form.email} onChange={onChange} placeholder="user@example.com" required />
-          {errors.email && <span className="error">{errors.email}</span>}
-        </div>
-        <button className="primary" type="submit" disabled={!canSubmit || submitting}>
-          {submitting ? '처리 중…' : '회원가입'}
-        </button>
-      </form>
+    <div className="signup-page">
+      <div className="signup-card">
+        <h1>관리자 회원가입</h1>
+        <form onSubmit={onSubmit} noValidate className="signup-form">
+          <div className="input-group">
+            <FiUser className="input-icon" />
+            <input name="admin_id" value={form.admin_id} onChange={onChange} placeholder="아이디" required />
+            {errors.admin_id && <span className="error-message">{errors.admin_id}</span>}
+          </div>
+          <div className="input-group">
+            <FiLock className="input-icon" />
+            <input type="password" name="password" value={form.password} onChange={onChange} placeholder="비밀번호 (8자 이상)" required />
+            {errors.password && <span className="error-message">{errors.password}</span>}
+          </div>
+          <div className="input-group">
+            <FiLock className="input-icon" />
+            <input type="password" name="password_confirm" value={form.password_confirm} onChange={onChange} placeholder="비밀번호 확인" required />
+            {errors.password_confirm && <span className="error-message">{errors.password_confirm}</span>}
+          </div>
+          <div className="input-group">
+            <FiUser className="input-icon" />
+            <input name="name" value={form.name} onChange={onChange} placeholder="이름" required />
+            {errors.name && <span className="error-message">{errors.name}</span>}
+          </div>
+          <div className="input-group">
+            <FiPhone className="input-icon" />
+            <input inputMode="numeric" name="phone" value={form.phone} onChange={onChange} placeholder="010-1234-5678" required />
+            {errors.phone && <span className="error-message">{errors.phone}</span>}
+          </div>
+          <div className="input-group">
+            <FiMail className="input-icon" />
+            <input type="email" name="email" value={form.email} onChange={onChange} placeholder="user@example.com" required />
+            {errors.email && <span className="error-message">{errors.email}</span>}
+          </div>
+          <button className="signup-btn" type="submit" disabled={!canSubmit || submitting}>
+            {submitting ? '처리 중…' : '회원가입'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
-

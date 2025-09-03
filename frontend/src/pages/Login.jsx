@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { login as loginApi } from '../services/api';
+import '../style/LoginPage.css';
+import { FiUser, FiLock } from 'react-icons/fi';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -43,39 +45,41 @@ export default function Login() {
   };
 
   return (
-    <div className="card">
-      <h1>로그인</h1>
-      <form onSubmit={handleSubmit} noValidate>
-        <div className="field">
-          <label>아이디</label>
-          <input
-            name="admin_id"
-            value={form.admin_id}
-            onChange={onChange}
-            placeholder="아이디"
-            autoComplete="username"
-            required
-          />
+    <div className="login-page">
+      <div className="login-card">
+        <h1>로그인</h1>
+        <form onSubmit={handleSubmit} noValidate className="login-form">
+          <div className="input-group">
+            <FiUser className="input-icon" />
+            <input
+              name="admin_id"
+              value={form.admin_id}
+              onChange={onChange}
+              placeholder="아이디"
+              autoComplete="username"
+              required
+            />
+          </div>
+          <div className="input-group">
+            <FiLock className="input-icon" />
+            <input
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={onChange}
+              placeholder="비밀번호"
+              autoComplete="current-password"
+              required
+            />
+          </div>
+          {error && <p className="login-error">{error}</p>}
+          <button className="login-btn" type="submit" disabled={pending}>
+            {pending ? '로그인 중…' : '로그인'}
+          </button>
+        </form>
+        <div className="signup-link">
+          <Link to="/admin/signup">관리자 회원가입</Link>
         </div>
-        <div className="field">
-          <label>비밀번호</label>
-          <input
-            type="password"
-            name="password"
-            value={form.password}
-            onChange={onChange}
-            placeholder="비밀번호"
-            autoComplete="current-password"
-            required
-          />
-        </div>
-        {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
-        <button className="primary" type="submit" disabled={pending}>
-          {pending ? '로그인 중…' : '로그인'}
-        </button>
-      </form>
-      <div style={{ marginTop: '1rem', textAlign: 'center' }}>
-        <Link to="/admin/signup">관리자 회원가입</Link>
       </div>
     </div>
   );

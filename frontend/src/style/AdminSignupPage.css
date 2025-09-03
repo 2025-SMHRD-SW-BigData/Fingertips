@@ -1,0 +1,77 @@
+/* src/style/AdminSignupPage.css */
+
+.signup-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #3e4a59;
+  padding: 40px 0;
+}
+
+.signup-card {
+  width: 100%;
+  max-width: 480px;
+  padding: 40px;
+  background-color: #2b3341;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  color: white;
+}
+
+.signup-card h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 28px;
+}
+
+.signup-form .input-group {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.signup-form .input-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+}
+
+.signup-form input {
+  width: 100%;
+  padding: 12px 12px 12px 50px;
+  border-radius: 8px;
+  border: 1px solid #4a5568;
+  background-color: #1f2733;
+  color: #fff;
+  font-size: 16px;
+}
+
+.signup-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background-color: #3b82f6;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.signup-btn:hover {
+  background-color: #2563eb;
+}
+
+.signup-btn:disabled {
+  background-color: #4a5568;
+  cursor: not-allowed;
+}
+
+.error-message {
+  color: #fecaca;
+  font-size: 12px;
+  margin-top: 5px;
+}
