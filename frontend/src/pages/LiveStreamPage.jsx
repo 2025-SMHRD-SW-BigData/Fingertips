@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import Logo from '../component/Logo';
 import MainpageTop from '../component/MainpageTop';
 import Sidebar from '../component/Sidebar';
-import '../style/LiveStreamPage.css'; // 이 CSS 파일도 새로 만들겠습니다.
+import '../style/LiveStreamPage.css';
 
 const LiveStreamPage = () => {
-    const [videoSrc, setVideoSrc] = useState('');
+    // State to hold an array of video sources for the grid layout
+    const [videoStreams, setVideoStreams] = useState([]);
     const [stats, setStats] = useState(null);
     const [isConnected, setIsConnected] = useState(false);
 
@@ -20,15 +21,21 @@ const LiveStreamPage = () => {
 
         socket.onmessage = (event) => {
             try {
-                // 서버로부터 받은 데이터는 항상 JSON 문자열입니다.
                 const data = JSON.parse(event.data);
 
-                // JSON 객체에서 videoFrame(데이터 URI)을 추출하여 비디오 소스를 업데이트합니다.
+                // When a video frame is received, update the list of streams.
+                // For demonstration, we'll create a 2x2 grid by duplicating the same stream.
+                // In a real application, the backend would provide multiple unique streams.
                 if (data.videoFrame) {
-                    setVideoSrc(data.videoFrame);
+                    // Create a dummy array of 4 video streams for layout purposes
+                    setVideoStreams([
+                        { id: 1, src: data.videoFrame },
+                        { id: 2, src: data.videoFrame },
+                        { id: 3, src: data.videoFrame },
+                        { id: 4, src: data.videoFrame },
+                    ]);
                 }
 
-                // JSON 객체에서 results를 추출하여 통계 정보를 업데이트합니다.
                 if (data.results) {
                     setStats(data.results);
                 }
@@ -46,14 +53,7 @@ const LiveStreamPage = () => {
             console.error('WebSocket Error:', error);
         };
 
-        // 컴포넌트가 언마운트될 때 정리
         return () => {
-            setVideoSrc(prevSrc => {
-                if (prevSrc) {
-                    URL.revokeObjectURL(prevSrc);
-                }
-                return '';
-            });
             socket.close();
         };
     }, []);
@@ -65,20 +65,27 @@ const LiveStreamPage = () => {
                 <MainpageTop />
                 <Sidebar />
                 <div className="content-area">
-                    <h1>실시간 라즈베리파이 영상</h1> {/* Moved h1 here */}
-                    <div className="live-video-wrapper box-style"> {/* Added box-style */}
-                        {isConnected && videoSrc ? (
-                            <img src={videoSrc} alt="Live Stream from Pi" />
+                    <h1>실시간 CCTV 영상</h1>
+                    {/* New container for the flexbox grid */}
+                    <div className="live-video-grid">
+                        {isConnected && videoStreams.length > 0 ? (
+                            videoStreams.map(video => (
+                                <div key={video.id} className="live-video-wrapper box-style">
+                                    <img src={video.src} alt={`Live Stream ${video.id}`} />
+                                    {/* Stats can be displayed per video if the backend provides them */}
+                                    {stats && (
+                                        <div className="live-stats-overlay">
+                                            <p>Cam {video.id}</p>
+                                            <p>Status: {stats.status}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            ))
                         ) : (
-                            <div className="status-overlay">
+                            // A single placeholder for the grid
+                            <div className="status-overlay-grid">
                                 <p>라즈베리파이 서버에 연결 중...</p>
                                 <p>(백엔드 및 라즈베리파이 스트리밍 스크립트가 실행 중인지 확인하세요)</p>
-                            </div>
-                        )}
-                        {isConnected && videoSrc && stats && (
-                            <div className="live-stats-overlay">
-                                <p>감지된 객체: {stats.detectionCount}</p>
-                                <p>상태: {stats.status}</p>
                             </div>
                         )}
                     </div>

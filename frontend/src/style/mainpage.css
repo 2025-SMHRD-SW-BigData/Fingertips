@@ -770,3 +770,76 @@
 .stat-box { background-color: var(--bg-surface-2); color: var(--text-body); }
 .vio_box, .inout_box { background-color: var(--bg-surface-2); }
 .all-btn { background: var(--bg-surface-2); color: var(--text-body); border: 1px solid var(--border); }
+
+/* ===========================
+   반응형 디자인
+=========================== */
+@media (max-width: 1200px) {
+  .page-layout, .page-layout-simple {
+    grid-template-columns: 200px 1fr; /* Sidebar slightly smaller */
+    gap: 16px;
+  }
+  .Mainpage_box { padding: 15px; }
+  .content-area { padding: 15px; }
+  .header h1 { font-size: 22px; }
+  .header .parking-controls select { font-size: 13px; padding: 6px 10px; }
+  .cctv-feed-item { min-width: 250px; } /* Adjust min-width for smaller screens */
+}
+
+@media (max-width: 992px) {
+  .page-layout, .page-layout-simple {
+    grid-template-columns: 1fr; /* Stack sidebar and content */
+    grid-template-rows: auto auto auto 1fr; /* Adjust rows */
+    grid-template-areas:
+      "logo"
+      "topbar"
+      "sidebar"
+      "content";
+    gap: 12px;
+  }
+  .Mainpage_box { padding: 10px; }
+  .content-area { padding: 10px; }
+  .Sidebar_box {
+    /* Make sidebar full width when stacked */
+    width: 100%;
+    margin-bottom: 12px;
+  }
+  .Top_box { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .search-container { width: 100%; }
+  .top-bar-widgets { width: 100%; justify-content: space-between; }
+  .top-bar-widgets > div, .top-bar-widgets > button { height: auto; }
+  .top-bar-widgets > .profile-group { width: auto; }
+  .Top_box.has-controls .parking-controls { width: 100%; justify-content: flex-start; }
+  .Top_box.has-controls .parking-controls-inner { width: 100%; }
+
+  .cctv-grid-container {
+    /* Allow flex-wrap to handle wrapping, no forced column */
+  }
+  .cctv-feed-item {
+    /* Adjust flex basis for smaller screens, but keep wrapping */
+    flex: 0 0 calc(50% - 10px); /* Maintain two columns with wrapping */
+    min-width: 280px; /* Slightly smaller min-width for smaller screens */
+  }
+}
+
+@media (max-width: 768px) {
+  .header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .header h1 { font-size: 20px; }
+  .header .parking-controls { width: 100%; justify-content: flex-start; }
+  .header .parking-controls-inner { width: 100%; }
+  .stats-container { flex-direction: column; }
+  .stat-box { flex-direction: column; text-align: center; gap: 10px; }
+  .bottom-content { flex-direction: column; }
+  .cctv-feed-item { flex: 1 1 100%; } /* Full width on very small screens */
+}
+
+@media (max-width: 480px) {
+  .Mainpage_box { padding: 5px; }
+  .content-area { padding: 5px; }
+  .header h1 { font-size: 18px; }
+  .header .parking-controls select { font-size: 12px; padding: 4px 8px; }
+  .data-table th, .data-table td { padding: 8px 5px; font-size: 12px; }
+  .status { padding: 3px 8px; font-size: 11px; }
+  .action-btn { padding: 4px 8px; font-size: 12px; }
+  .modal-card { width: 95vw; }
+}

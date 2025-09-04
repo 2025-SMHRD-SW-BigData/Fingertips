@@ -2,10 +2,11 @@
    CCTV 그리드
 =========================== */
 .cctv-grid-container {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(2, 1fr);
+    display: flex;
+    flex-wrap: wrap;
     gap: 20px;
+    justify-content: center; /* 가로 중앙 정렬 */
+    width: 100%; /* 부모 컨테이너의 전체 너비를 차지하도록 설정 */
 }
 
 /* CCTV 카드 */
@@ -15,9 +16,13 @@
     border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     overflow: hidden;
-    position: relative;
+    position: relative; /* For absolute positioning of child video */
     cursor: pointer;
     transition: transform 0.2s ease;
+    flex: 0 0 calc(50% - 10px); /* 2열 레이아웃을 위한 flex-basis, 간격 고려 */
+    padding-bottom: 42.857%; /* 21:9 Aspect Ratio (9/21 * 100%) */
+    height: 0; /* Important: remove fixed height */
+    flex-shrink: 0; /* 크기 줄어들지 않도록 설정 */
 }
 
 .cctv-feed-item:hover {
@@ -26,11 +31,17 @@
 
 /* 비디오 */
 .cctv-feed-item video {
+    position: absolute; /* Fill the aspect-ratio maintained parent */
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: cover; /* Fill the container, potentially cropping */
     background-color: #000;
     border-radius: 12px;
+    display: block;
+    margin: 0;
+    padding: 0;
 }
 
 /* 영상 타이틀 */

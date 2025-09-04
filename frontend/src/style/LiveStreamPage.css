@@ -1,56 +1,79 @@
 /* src/style/LiveStreamPage.css */
 
+/* New grid container for wrapping videos */
+.live-video-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px; /* Spacing between video items */
+    justify-content: center;
+    align-self: center; /* Add this line to prevent stretching */
+}
+
+/* Modified video wrapper to act as a flex item */
 .live-video-wrapper {
-    /* Inherit box-style properties from mainpage.css */
-    /* background-color, border-radius, box-shadow, padding are handled by box-style */
     position: relative;
-    width: 100%;
-    max-width: 960px; /* Keep max-width for video aspect ratio */
-    margin: 0 auto; /* Center the video wrapper */
-    background-color: #000; /* Fallback for video background */
-    border: 1px solid #4a5568; /* Consistent with box-style */
-    border-radius: 20px; /* Consistent with box-style */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Consistent with box-style */
+    flex: 1 1 400px; /* Grow, shrink, with a base width of 400px */
+    max-width: 640px; /* Optional: max width for a single item */
+    background-color: #000;
+    border: 1px solid #4a5568;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     overflow: hidden;
-    min-height: 480px; /* Minimum height for placeholder */
+    aspect-ratio: 16 / 9; /* Maintain aspect ratio */
     display: flex;
     justify-content: center;
     align-items: center;
     color: white;
-    padding: 20px; /* Consistent with box-style */
-    box-sizing: border-box; /* Include padding in width/height */
+    box-sizing: border-box;
+    /* Padding is removed to let the image fill the space, use gap on grid instead */
 }
 
 .live-video-wrapper img {
     width: 100%;
-    height: auto;
+    height: 100%;
+    object-fit: cover; /* Use cover to fill the aspect ratio box */
     display: block;
-    border-radius: 12px; /* Slightly smaller border-radius for inner image */
 }
 
-.status-overlay {
+/* Modified status overlay to span the grid area if needed */
+.status-overlay-grid {
+    width: 100%;
     text-align: center;
-    padding: 20px;
-    font-size: 1.2em; /* Larger font for readability */
-    color: #a0aec0; /* Consistent with placeholder text */
+    padding: 40px 20px;
+    font-size: 1.2em;
+    color: #a0aec0;
+    background-color: #2d3748;
+    border-radius: 20px;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
-.status-overlay p {
-    margin: 10px 0; /* More spacing for readability */
+.status-overlay-grid p {
+    margin: 10px 0;
 }
 
 .live-stats-overlay {
     position: absolute;
-    bottom: 20px; /* More spacing from bottom */
-    left: 20px; /* More spacing from left */
-    background-color: rgba(0, 0, 0, 0.7); /* Slightly darker overlay */
+    bottom: 10px;
+    left: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
     color: #fff;
-    padding: 10px 15px; /* More padding */
-    border-radius: 8px; /* Consistent with other elements */
-    font-size: 1rem; /* Slightly larger font */
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
 }
 
 .live-stats-overlay p {
     margin: 0;
-    line-height: 1.6; /* More line height for readability */
+    line-height: 1.5;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #e2e8f0;
+    font-size: 2rem;
 }
