@@ -579,6 +579,17 @@ const StatisticsPage = () => {
                               setTtDate((s) => ({ ...s, pinned: !s.pinned, visible: true }));
                             }}
                       />
+                      {/* Value above point */}
+                      <text
+                        x={toX(i)}
+                        y={Math.max(10, toY(d.value) - 8)}
+                        textAnchor="middle"
+                        fontSize="10"
+                        fill="var(--text-body)"
+                        style={{ pointerEvents: 'none' }}
+                      >
+                        {d.value}
+                      </text>
                       <text x={toX(i)} y={H - 4} textAnchor="middle" fontSize="10" fill="#cbd5e1">{d.label}</text>
                     </g>
                   ))}

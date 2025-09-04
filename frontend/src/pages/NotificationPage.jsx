@@ -29,7 +29,9 @@ const NotificationPage = () => {
           }
           return;
         }
-        const rows = await getAlerts(adminId, { status: 'all' });
+        const rawIdx = localStorage.getItem('parking_idx');
+        const parkingIdx = rawIdx ? parseInt(rawIdx, 10) : null;
+        const rows = await getAlerts(adminId, { status: 'all', parkingIdx });
         if (!mounted) return;
         setNotifications(Array.isArray(rows) ? rows : []);
         setPage(1); // reset to first page on reload
@@ -42,6 +44,44 @@ const NotificationPage = () => {
     load();
     return () => {
       mounted = false;
+    };
+  }, []);
+
+  // Reload alerts when parking/district selection changes
+  useEffect(() => {
+    let cancelled = false;
+    const reload = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const adminId = localStorage.getItem('admin_id');
+        if (!adminId) {
+          if (!cancelled) {
+            setNotifications([]);
+          }
+          return;
+        }
+        const rawIdx = localStorage.getItem('parking_idx');
+        const parkingIdx = rawIdx ? parseInt(rawIdx, 10) : null;
+        const rows = await getAlerts(adminId, { status: 'all', parkingIdx });
+        if (!cancelled) {
+          setNotifications(Array.isArray(rows) ? rows : []);
+          setPage(1);
+        }
+      } catch (err) {
+        if (!cancelled) setError(err?.message || '알림을 불러오지 못했습니다.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    const onParking = () => reload();
+    const onDistrict = () => reload();
+    window.addEventListener('parking-change', onParking);
+    window.addEventListener('district-change', onDistrict);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('parking-change', onParking);
+      window.removeEventListener('district-change', onDistrict);
     };
   }, []);
 
@@ -114,7 +154,7 @@ const NotificationPage = () => {
                     <th>메시지</th>
                     <th>유형</th>
                     <th>시간</th>
-                    <th>상태</th>
+                    <th>형태</th>
                     <th>작업</th>
                   </tr>
                 </thead>
@@ -131,7 +171,7 @@ const NotificationPage = () => {
                         <td>
                           {isUnread ? (
                             <button className="action-btn" disabled={busy} onClick={() => handleMarkRead(n.alert_idx)}>
-                              {busy ? '처리 중…' : '읽음 처리'}
+                              {busy ? '처리 중' : '읽음 처리'}
                             </button>
                           ) : (
                             <span style={{ color: '#9aa0a6' }}>-</span>
@@ -150,8 +190,7 @@ const NotificationPage = () => {
                   <button className="all-btn" disabled={currentPage >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>다음</button>
                 </div>
                 <div style={{ color: '#c9d1d9', fontSize: 12 }}>
-                  페이지 {currentPage} / {totalPages} · 총 {totalItems}건
-                </div>
+                  페이지 {currentPage} / {totalPages} · 총{totalItems}건                </div>
               </div>
             )}
           </div>
@@ -162,3 +201,4 @@ const NotificationPage = () => {
 };
 
 export default NotificationPage;
+

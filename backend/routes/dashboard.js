@@ -25,7 +25,15 @@ router.get('/summary', async (req, res, next) => {
       `SELECT COUNT(*) AS current_general FROM tb_parking_space WHERE space_type = 'general' AND is_occupied = TRUE${hasFilter ? ' AND parking_idx = ?' : ''}`,
       hasFilter ? [parkingIdx] : []
     );
-    const tv = await db.query('SELECT COUNT(*) AS today_violations FROM tb_violation WHERE DATE(created_at) = CURDATE()');
+    const tv = await db.query(
+      hasFilter
+        ? `SELECT COUNT(*) AS today_violations
+             FROM tb_violation v
+             JOIN tb_detection d ON v.ve_detection_idx = d.ve_detection_idx
+            WHERE DATE(v.created_at) = CURDATE() AND d.parking_idx = ?`
+        : `SELECT COUNT(*) AS today_violations FROM tb_violation WHERE DATE(created_at) = CURDATE()`,
+      hasFilter ? [parkingIdx] : []
+    );
 
     const total_disabled = td[0]?.total_disabled || 0;
     const current_disabled = cd[0]?.current_disabled || 0;

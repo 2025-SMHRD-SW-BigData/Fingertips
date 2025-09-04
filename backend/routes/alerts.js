@@ -3,25 +3,43 @@ const db = require('../services/db');
 
 const router = express.Router();
 
-// GET /api/alerts?status=unread|all (default: all)
+// GET /api/alerts?status=unread|all (default: all)&parking_idx=<number>
 router.get('/', async (req, res, next) => {
   try {
     const adminId = (req.query.admin_id || '').toString().trim();
-    if (!adminId) return res.status(400).json({ message: 'admin_id가 필요합니다.' });
+    if (!adminId) return res.status(400).json({ message: 'admin_id가 ?�요?�니??' });
 
     const status = (req.query.status || 'all').toString();
-    const where = ['admin_id = ?'];
+    const parkingIdx = parseInt(req.query.parking_idx, 10);
+
+    const baseWhere = ['a.admin_id = ?'];
     const params = [adminId];
     if (status === 'unread') {
-      where.push('read_at IS NULL');
+      baseWhere.push('a.read_at IS NULL');
     }
-    const rows = await db.query(
-      `SELECT alert_idx, violation_idx, alert_type, alert_msg, sent_at, is_success, admin_id, read_at, admin_status, admin_content, processed_at
-         FROM tb_alert
-        WHERE ${where.join(' AND ')}
-        ORDER BY sent_at DESC`,
-      params
-    );
+
+    let rows;
+    if (Number.isFinite(parkingIdx)) {
+      rows = await db.query(
+        `SELECT a.alert_idx, a.violation_idx, a.alert_type, a.alert_msg, a.sent_at,
+                a.is_success, a.admin_id, a.read_at, a.admin_status, a.admin_content, a.processed_at
+           FROM tb_alert a
+           JOIN tb_violation v ON v.violation_idx = a.violation_idx
+           JOIN tb_detection d ON d.ve_detection_idx = v.ve_detection_idx
+          WHERE ${baseWhere.join(' AND ')} AND d.parking_idx = ?
+          ORDER BY a.sent_at DESC`,
+        [...params, parkingIdx]
+      );
+    } else {
+      rows = await db.query(
+        `SELECT a.alert_idx, a.violation_idx, a.alert_type, a.alert_msg, a.sent_at,
+                a.is_success, a.admin_id, a.read_at, a.admin_status, a.admin_content, a.processed_at
+           FROM tb_alert a
+          WHERE ${baseWhere.join(' AND ')}
+          ORDER BY a.sent_at DESC`,
+        params
+      );
+    }
     res.json(rows);
   } catch (err) {
     console.error('Error in GET /api/alerts', err);
@@ -33,7 +51,7 @@ router.get('/', async (req, res, next) => {
 router.patch('/:id', async (req, res, next) => {
   try {
     const id = parseInt(req.params.id, 10);
-    if (!Number.isFinite(id)) return res.status(400).json({ message: '잘못된 ID' });
+    if (!Number.isFinite(id)) return res.status(400).json({ message: '?�못??ID' });
     const updates = [];
     const params = [];
 
@@ -54,7 +72,7 @@ router.patch('/:id', async (req, res, next) => {
     }
 
     if (!updates.length) {
-      return res.status(400).json({ message: '업데이트할 항목이 없습니다.' });
+      return res.status(400).json({ message: '?�데?�트????��???�습?�다.' });
     }
 
     params.push(id);
@@ -62,7 +80,7 @@ router.patch('/:id', async (req, res, next) => {
       `UPDATE tb_alert SET ${updates.join(', ')} WHERE alert_idx = ?`,
       params
     );
-    res.json({ message: '알림이 업데이트되었습니다.' });
+    res.json({ message: '?�림???�데?�트?�었?�니??' });
   } catch (err) {
     console.error('Error in PATCH /api/alerts/:id', err);
     next(err);
@@ -70,3 +88,4 @@ router.patch('/:id', async (req, res, next) => {
 });
 
 module.exports = router;
+

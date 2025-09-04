@@ -125,12 +125,20 @@ export const getParkingLogs = ({ parkingIdx } = {}) => {
 };
 
 // Alerts and violations helpers
-export const getUnreadAlerts = (adminId) =>
-  request(`/alerts?status=unread&admin_id=${encodeURIComponent(adminId)}`);
+export const getUnreadAlerts = (adminId, { parkingIdx } = {}) => {
+  const idx = parkingIdx ?? getSelectedParkingIdx();
+  const qp = new URLSearchParams({ admin_id: adminId, status: 'unread' });
+  if (idx) qp.set('parking_idx', String(idx));
+  return request(`/alerts?${qp.toString()}`);
+};
 
 // Alerts list by status (all|unread)
-export const getAlerts = (adminId, { status = 'all' } = {}) =>
-  request(`/alerts?admin_id=${encodeURIComponent(adminId)}&status=${encodeURIComponent(status)}`);
+export const getAlerts = (adminId, { status = 'all', parkingIdx } = {}) => {
+  const idx = parkingIdx ?? getSelectedParkingIdx();
+  const qp = new URLSearchParams({ admin_id: adminId, status });
+  if (idx) qp.set('parking_idx', String(idx));
+  return request(`/alerts?${qp.toString()}`);
+};
 
 // Update single alert (e.g., { read: true })
 export const updateAlert = (id, body = {}) =>

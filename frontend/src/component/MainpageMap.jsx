@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import P1_SVG from '../assets/p1.svg?react';
-import P2_SVG from '../assets/p2.svg?react';
+import p2_img_url from '../assets/p2.png';
 import p1_csv_url from '../assets/p1.csv?url';
 import p2_csv_url from '../assets/p2.csv?url';
 import { getParkingStatus } from '../services/api';
@@ -48,11 +48,27 @@ const MainpageMap = ({ parking_idx, maxWidth }) => {
   }, []);
 
   // Pick assets by odd/even
-  const { MapComponent, csvUrl, viewBox, isP2 } = useMemo(() => {
+  const [p2Dims, setP2Dims] = useState(viewBoxes.p2);
+
+  useEffect(() => {
+    // Preload p2.png and capture its natural size to align overlay correctly
+    const img = new Image();
+    img.onload = () => {
+      const w = img.naturalWidth || viewBoxes.p2.width;
+      const h = img.naturalHeight || viewBoxes.p2.height;
+      setP2Dims({ width: w, height: h });
+    };
+    img.onerror = () => {
+      // keep default dims on error
+    };
+    img.src = p2_img_url;
+  }, []);
+
+  const { baseType, MapComponent, imgUrl, csvUrl, viewBox, isP2 } = useMemo(() => {
     const isOdd = Number(effectiveIdx) % 2 !== 0;
-    if (isOdd) return { MapComponent: P1_SVG, csvUrl: p1_csv_url, viewBox: viewBoxes.p1, isP2: false };
-    return { MapComponent: P2_SVG, csvUrl: p2_csv_url, viewBox: viewBoxes.p2, isP2: true };
-  }, [effectiveIdx]);
+    if (isOdd) return { baseType: 'svg', MapComponent: P1_SVG, imgUrl: null, csvUrl: p1_csv_url, viewBox: viewBoxes.p1, isP2: false };
+    return { baseType: 'img', MapComponent: null, imgUrl: p2_img_url, csvUrl: p2_csv_url, viewBox: p2Dims, isP2: true };
+  }, [effectiveIdx, p2Dims]);
 
   // CSV geometry
   const [geoList, setGeoList] = useState([]);
@@ -153,7 +169,10 @@ const MainpageMap = ({ parking_idx, maxWidth }) => {
   return (
     <div className="parking-map-container mainmap" style={containerStyle} ref={containerRef}>
       <div className="svg-stage" style={stageStyle}>
-        {MapComponent && <MapComponent className="map-base-svg" />}
+        {baseType === 'svg' && MapComponent && <MapComponent className="map-base-svg" />}
+        {baseType === 'img' && imgUrl && (
+          <img src={imgUrl} alt="Parking map" className="map-base-img" />
+        )}
         <svg
           className="slot-overlay-svg"
           viewBox={`0 0 ${viewBox.width} ${viewBox.height}`}

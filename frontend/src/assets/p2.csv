@@ -1,8 +1,8 @@
 id,type,x,y,width,height
-p2_d1,disabled,46,178,66,148
-p2_g1,general,121,178,66,148
-p2_g2,general,198,178,66,148
-p2_g3,general,275,178,66,148
-p2_g4,general,354,178,66,148
-p2_g5,general,430,178,66,148
-p2_g6,general,507,178,66,148
+p2_d1,disabled,228,20,460,1028
+p2_g1,general,732,26,496,1028
+p2_g2,general,1268,26,496,1028
+p2_g3,general,1804,26,496,1028
+p2_g4,general,2340,26,496,1028
+p2_g5,general,2876,26,496,1028
+p2_g6,general,3412,26,496,1028
