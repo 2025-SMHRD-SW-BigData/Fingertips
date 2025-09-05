@@ -1,47 +1,86 @@
 /* ===========================
+   CCTV Grid Container
+=========================== */
+.cctv-management-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    gap: 10px;
+    background-color: #2B3341; /* 헤더와 어울리도록 통일 */
+    overflow: hidden; /* 스크롤 제거 */
+}
+
+/* 헤더 */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0px;
+    background-color: #2B3341;
+    border-radius: 8px;
+    flex: 0 0 auto;
+    z-index: 10;
+}
+
+.header h1 {
+    margin: 0px;
+    font-size: 20px;
+    color: #E2E8F0;
+    white-space: nowrap;
+}
+
+.header .parking-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.header .parking-controls select {
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: 1px solid #4a5568;
+    background-color: #2d3748;
+    color: white;
+    font-size: 0.9em;
+}
+
+.header .parking-controls select:focus {
+    outline: none;
+    border-color: #63b3ed;
+}
+
+/* ===========================
    CCTV 그리드
 =========================== */
 .cctv-grid-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: center; /* 가로 중앙 정렬 */
-    width: 100%; /* 부모 컨테이너의 전체 너비를 차지하도록 설정 */
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2열 */
+    grid-template-rows: repeat(2, 1fr);    /* 2행 */
+    gap: 10px;
+    flex: 1 1 auto;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
 }
 
 /* CCTV 카드 */
 .cctv-feed-item {
     background-color: #3A4460;
-    border: 1px solid #4a5568;
     border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     overflow: hidden;
-    position: relative; /* For absolute positioning of child video */
+    position: relative;
+    width: 100%;
+    height: 100%;
     cursor: pointer;
-    transition: transform 0.2s ease;
-    flex: 0 0 calc(50% - 10px); /* 2열 레이아웃을 위한 flex-basis, 간격 고려 */
-    padding-bottom: 42.857%; /* 21:9 Aspect Ratio (9/21 * 100%) */
-    height: 0; /* Important: remove fixed height */
-    flex-shrink: 0; /* 크기 줄어들지 않도록 설정 */
-}
-
-.cctv-feed-item:hover {
-    transform: scale(1.02);
 }
 
 /* 비디오 */
 .cctv-feed-item video {
-    position: absolute; /* Fill the aspect-ratio maintained parent */
-    top: 0;
-    left: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Fill the container, potentially cropping */
-    background-color: #000;
-    border-radius: 12px;
-    display: block;
-    margin: 0;
-    padding: 0;
+    object-fit: cover;
 }
 
 /* 영상 타이틀 */
@@ -50,85 +89,42 @@
     top: 10px;
     left: 10px;
     z-index: 10;
-    margin: 0;
-    color: white;
-    background-color: rgba(0, 0, 0, 0.5);
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 0.9em;
+    color: #fff;
+    background-color: rgba(0,0,0,0.6);
+    padding: 4px 8px;
+    border-radius: 4px;
     font-weight: bold;
 }
 
 /* ===========================
-   모달 스타일
+   모달 (풀스크린 영상)
 =========================== */
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.85);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-    /* 메인페이지보다 위 */
-}
-
-.main-content {
-    padding: 20px;
-    width: 1290px;
-    margin-left: 200px;
-    /* Same as sidebar width */
-    padding-top: 100px;
-    /* Same as top bar height */
-    padding-left: 20px;
-    padding-right: 20px;
-}
-
-.modal-video {
     width: 100%;
-    max-height: 80vh;
-    border-radius: 4px;
-    display: block;
+    height: 100%;
+    background: rgba(0,0,0,0.9); /* 어두운 배경 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
 }
 
-.modal-close {
-    position: absolute;
-    top: -25px;
-    right: -10px;
-    color: #fff;
-    font-size: 35px;
-    font-weight: bold;
-    cursor: pointer;
-    background: none;
+.modal-video-fullscreen {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* 비율 유지하면서 화면에 맞춤 */
     border: none;
-    line-height: 1;
+    outline: none;
 }
 
 /* ===========================
-   CCTV 헤더
+   플레이스홀더
 =========================== */
-.cctv-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.parking-lot-selector {
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: 1px solid #4a5568;
-    background-color: #2d3748;
-    color: white;
-    font-size: 1em;
-}
-
 .cctv-placeholder {
     grid-column: 1 / -1;
-    /* 전체 너비 차지 */
     text-align: center;
     padding: 50px;
     color: #a0aec0;
@@ -138,58 +134,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 300px;
 }
 
-.modal-content {
-    position: relative;
-    background-color: #2B3341;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-    max-width: 90%;
-    max-height: 90%;
-    overflow: auto;
-}
-
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.header h1 {
-    margin: 0;
-    font-size: 24px;
-    color: #E2E8F0;
-}
-
-.header .parking-controls {
-    display: flex;
-    gap: 10px;
-}
-
-.header .parking-controls select {
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px solid #4a5568;
-    background-color: #3b4252;
-    color: white;
-    font-size: 14px;
-}
-
-.header .parking-controls select:focus {
-    outline: none;
-    border-color: #63b3ed;
-}
-
-.cctv-management-container {
-    padding: 20px;
-    background-color: #2B3341;
-    border-radius: 20px;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+/* ===========================
+   반응형
+=========================== */
+@media (max-width: 1024px) {
+    .cctv-grid-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+    }
 }

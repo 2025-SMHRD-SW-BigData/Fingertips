@@ -4,22 +4,27 @@
 .live-video-grid {
     display: flex;
     flex-wrap: wrap;
-    gap: 20px; /* Spacing between video items */
+    gap: 20px;
+    /* Spacing between video items */
     justify-content: center;
-    align-self: center; /* Add this line to prevent stretching */
+    align-self: center;
+    /* Add this line to prevent stretching */
 }
 
 /* Modified video wrapper to act as a flex item */
 .live-video-wrapper {
     position: relative;
-    flex: 1 1 400px; /* Grow, shrink, with a base width of 400px */
-    max-width: 640px; /* Optional: max width for a single item */
+    flex: 1 1 400px;
+    /* Grow, shrink, with a base width of 400px */
+    max-width: 640px;
+    /* Optional: max width for a single item */
     background-color: #000;
     border: 1px solid #4a5568;
     border-radius: 20px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     overflow: hidden;
-    aspect-ratio: 16 / 9; /* Maintain aspect ratio */
+    aspect-ratio: 16 / 9;
+    /* Maintain aspect ratio */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -31,7 +36,8 @@
 .live-video-wrapper img {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Use cover to fill the aspect ratio box */
+    object-fit: cover;
+    /* Use cover to fill the aspect ratio box */
     display: block;
 }
 
@@ -76,4 +82,26 @@ h1 {
     margin-bottom: 20px;
     color: #e2e8f0;
     font-size: 2rem;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.modal-content {
+    width: 80%;
+    height: 80%;
+    background: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }

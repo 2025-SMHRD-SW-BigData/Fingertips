@@ -1,98 +1,151 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Logo from '../component/Logo';
 import MainpageTop from '../component/MainpageTop';
 import Sidebar from '../component/Sidebar';
 import '../style/LiveStreamPage.css';
 
 const LiveStreamPage = () => {
-    // State to hold an array of video sources for the grid layout
-    const [videoStreams, setVideoStreams] = useState([]);
-    const [stats, setStats] = useState(null);
-    const [isConnected, setIsConnected] = useState(false);
+  const [videoStreams, setVideoStreams] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
 
-    useEffect(() => {
-        const WEBSOCKET_URL = 'ws://fingertips-env.eba-pbxevwfi.ap-northeast-2.elasticbeanstalk.com/';
-        const socket = new WebSocket(WEBSOCKET_URL);
+  // 모달 상태
+  const [modalOpen, setModalOpen] = useState(false);
+  const canvasRef = useRef(null);
+  const frameRef = useRef(null);
+  const recBlinkRef = useRef(true); // REC 깜빡임 상태
 
-        socket.onopen = () => {
-            console.log('WebSocket Connected');
-            setIsConnected(true);
+  useEffect(() => {
+    const WEBSOCKET_URL =
+      'ws://fingertips-env.eba-pbxevwfi.ap-northeast-2.elasticbeanstalk.com/';
+    const socket = new WebSocket(WEBSOCKET_URL);
+
+    socket.onopen = () => setIsConnected(true);
+
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.videoFrame) {
+          setVideoStreams([{ id: 1, src: data.videoFrame }]);
+          frameRef.current = data.videoFrame;
+        }
+        if (data.results) setStats(data.results);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    socket.onclose = () => setIsConnected(false);
+    socket.onerror = (error) => console.error(error);
+
+    return () => socket.close();
+  }, []);
+
+  const openModal = () => setModalOpen(true);
+  const closeModal = () => setModalOpen(false);
+
+  // 모달 캔버스 및 REC 깜빡임 그리기
+  useEffect(() => {
+    let animationFrameId;
+
+    const draw = () => {
+      if (modalOpen && canvasRef.current && frameRef.current) {
+        const ctx = canvasRef.current.getContext('2d');
+        const img = new Image();
+        img.src = frameRef.current;
+        img.onload = () => {
+          // 영상 그리기
+          ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+          ctx.drawImage(img, 0, 0, canvasRef.current.width, canvasRef.current.height);
+
+          // 좌측 상단 REC 깜빡이기
+          if (recBlinkRef.current) {
+            ctx.fillStyle = 'red';
+            ctx.beginPath();
+            ctx.arc(20, 20, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 14px Arial';
+            ctx.fillText('REC', 35, 25);
+          }
         };
+      }
+      animationFrameId = requestAnimationFrame(draw);
+    };
 
-        socket.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
+    let blinkInterval;
+    if (modalOpen) {
+      animationFrameId = requestAnimationFrame(draw);
+      // 500ms마다 깜빡임 토글
+      blinkInterval = setInterval(() => {
+        recBlinkRef.current = !recBlinkRef.current;
+      }, 500);
+    }
 
-                // When a video frame is received, update the list of streams.
-                // For demonstration, we'll create a 2x2 grid by duplicating the same stream.
-                // In a real application, the backend would provide multiple unique streams.
-                if (data.videoFrame) {
-                    // Create a dummy array of 4 video streams for layout purposes
-                    setVideoStreams([
-                        { id: 1, src: data.videoFrame },
-                        { id: 2, src: data.videoFrame },
-                        { id: 3, src: data.videoFrame },
-                        { id: 4, src: data.videoFrame },
-                    ]);
-                }
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      if (blinkInterval) clearInterval(blinkInterval);
+    };
+  }, [modalOpen]);
 
-                if (data.results) {
-                    setStats(data.results);
-                }
-            } catch (error) {
-                console.error('Error parsing WebSocket JSON message:', error);
-            }
-        };
+  return (
+    <div className="Mainpage_box">
+      <div className="page-layout-simple">
+        <Logo />
+        <MainpageTop />
+        <Sidebar />
+        <div className="content-area">
+          <h1>
+            <span style={{ color: 'red', fontWeight: 'bold' }}>🔴</span> 실시간 영상
+          </h1>
 
-        socket.onclose = () => {
-            console.log('WebSocket Disconnected');
-            setIsConnected(false);
-        };
-
-        socket.onerror = (error) => {
-            console.error('WebSocket Error:', error);
-        };
-
-        return () => {
-            socket.close();
-        };
-    }, []);
-
-    return (
-        <div className="Mainpage_box">
-            <div className="page-layout-simple">
-                <Logo />
-                <MainpageTop />
-                <Sidebar />
-                <div className="content-area">
-                    <h1>실시간 CCTV 영상</h1>
-                    {/* New container for the flexbox grid */}
-                    <div className="live-video-grid">
-                        {isConnected && videoStreams.length > 0 ? (
-                            videoStreams.map(video => (
-                                <div key={video.id} className="live-video-wrapper box-style">
-                                    <img src={video.src} alt={`Live Stream ${video.id}`} />
-                                    {/* Stats can be displayed per video if the backend provides them */}
-                                    {stats && (
-                                        <div className="live-stats-overlay">
-                                            <p>Cam {video.id}</p>
-                                            <p>Status: {stats.status}</p>
-                                        </div>
-                                    )}
-                                </div>
-                            ))
-                        ) : (
-                            // A single placeholder for the grid
-                            <div className="status-overlay-grid">
-                                <p>라즈베리파이 서버에 연결 중...</p>
-                                <p>(백엔드 및 라즈베리파이 스트리밍 스크립트가 실행 중인지 확인하세요)</p>
-                            </div>
-                        )}
+          <div className="live-video-grid">
+            {isConnected && videoStreams.length > 0 ? (
+              videoStreams.map((video) => (
+                <div
+                  key={video.id}
+                  className="live-video-wrapper box-style"
+                  onClick={openModal}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <img src={video.src} alt={`Live Stream ${video.id}`} />
+                  {stats && (
+                    <div className="live-stats-overlay">
+                      <p>Cam {video.id}</p>
+                      <p>Status: {stats.status}</p>
                     </div>
+                  )}
                 </div>
+              ))
+            ) : (
+              <div className="status-overlay-grid">
+                <p>라즈베리파이 서버에 연결 중...</p>
+                <p>(백엔드 및 라즈베리파이 스트리밍 스크립트가 실행 중인지 확인하세요)</p>
+              </div>
+            )}
+          </div>
+
+          {modalOpen && (
+            <div className="modal-overlay" onClick={closeModal}>
+              <div
+                className="modal-content"
+                onClick={(e) => e.stopPropagation()}
+                style={{ padding: 0 }}
+              >
+                <canvas
+                  ref={canvasRef}
+                  width={800}
+                  height={600}
+                  style={{ width: '100%', height: '100%' }}
+                />
+              </div>
             </div>
+          )}
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 export default LiveStreamPage;
