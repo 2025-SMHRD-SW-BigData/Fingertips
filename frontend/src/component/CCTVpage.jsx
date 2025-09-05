@@ -34,8 +34,8 @@ const CCTVManagement = () => {
     const videoRefs = useRef([]);
     const modalVideoRef = useRef(null);
 
-    const cctvFeeds = selectedParkingLot && selectedParkingLot !== '__NO_CCTV__' 
-        ? (parkingLotData[selectedParkingLot] || []) 
+    const cctvFeeds = selectedParkingLot && selectedParkingLot !== '__NO_CCTV__'
+        ? (parkingLotData[selectedParkingLot] || [])
         : [];
 
     // 페이지 로드 시 localStorage 값으로 초기 선택
@@ -63,9 +63,13 @@ const CCTVManagement = () => {
         };
     }, []);
 
-    const openModal = (src, index) => {
-        setModalSrc(src);
+    const openModal = (modalSrc, index) => {
+        if (videoRefs.current[index]) {
+            const currentTime = videoRefs.current[index].currentTime; // CCTV 영상 현재 시간
+            setModalSrc({ src: modalSrc, currentTime }); // 객체로 저장
+        }
     };
+
 
     const closeModal = () => setModalSrc(null);
 
@@ -118,15 +122,22 @@ const CCTVManagement = () => {
                 <div className="modal-overlay" onClick={closeModal}>
                     <video
                         ref={modalVideoRef}
-                        src={modalSrc}
+                        src={modalSrc.src}          // 객체에서 src 사용
                         autoPlay
                         muted
                         loop
                         className="modal-video"
                         onClick={(e) => e.stopPropagation()}
+                        onLoadedMetadata={() => {
+                            if (modalVideoRef.current && modalSrc.currentTime != null) {
+                                modalVideoRef.current.currentTime = modalSrc.currentTime; // CCTV 영상 시간과 동기화
+                                modalVideoRef.current.play().catch(() => { });
+                            }
+                        }}
                     />
                 </div>
             )}
+
         </div>
     );
 };
