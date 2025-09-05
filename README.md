@@ -74,3 +74,18 @@
 
 ## 🏗️ 시스템 아키텍처
 
+
+- 주차장 카메라 영상은 엣지 디바이스에서 분석되어 서버로 전송  
+- 분석 결과는 데이터베이스에 기록  
+- 관리자는 웹페이지에서 실시간 주차 현황과 위반 정보를 확인 가능
+
+---
+
+## 📌 배지 예시 (선택적)
+
+![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=white) 
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white) 
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white) 
+![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
+
+
