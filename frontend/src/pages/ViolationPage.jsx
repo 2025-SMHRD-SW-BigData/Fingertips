@@ -19,14 +19,25 @@ const ViolationPage = () => {
   const [marking, setMarking] = useState({});
   const location = useLocation();
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
-  const [pageMeta, setPageMeta] = useState({ totalItems: 0, pageSize: 20, currentPage: 1, totalPages: 1 });
+  const [limit, setLimit] = useState(5);
+  const [pageMeta, setPageMeta] = useState({ totalItems: 0, pageSize: 5, currentPage: 1, totalPages: 1 });
   const [searchQuery, setSearchQuery] = useState('');
   const [dateFilter, setDateFilter] = useState('');
   const [rangeFilter, setRangeFilter] = useState({ from: '', to: '' });
   const [typeFilter, setTypeFilter] = useState('');
   const [highlightSet, setHighlightSet] = useState(() => new Set());
   const [highlightMode, setHighlightMode] = useState(''); // '', 'type', 'date', 'range'
+
+  const statusClass = useMemo(() => (val) => {
+    const raw = String(val || '').toLowerCase();
+    if (!raw) return 'chip';
+    // Map common admin_status and variants to chip colors
+    if (raw.includes('미처리')) return 'chip'; // 미처리는 기본 회색
+    if (raw.includes('중') || raw.includes('계도') || raw.includes('progress')) return 'chip orange'; // 처리중/계도방송
+    if (raw.includes('대기') || raw.includes('보류') || raw.includes('pending') || raw.includes('검토')) return 'chip purple';
+    if (raw.includes('완료') || raw.includes('확정') || raw.includes('confirmed') || raw.includes('경고') || raw.includes('위반')) return 'chip red';
+    return 'chip';
+  }, []);
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -36,21 +47,49 @@ const ViolationPage = () => {
   const [modalBusy, setModalBusy] = useState(false);
   const [modalError, setModalError] = useState('');
 
-  const load = async () => {
+  const load = async (targetPage = page, isAutoRedirect = false) => {
     setLoading(true);
     setError('');
+    
+    // URL에서 직접 파라미터를 읽어와서 사용 (상태 업데이트 지연 문제 해결)
+    const sp = new URLSearchParams(location.search);
+    const urlSearch = (sp.get('search') || '').trim();
+    const urlDate = (sp.get('date') || '').trim();
+    const urlFrom = (sp.get('from') || '').trim();
+    const urlTo = (sp.get('to') || '').trim();
+    const urlType = (sp.get('type') || '').trim();
+    
+    const params = {
+      page: targetPage,
+      limit,
+      search: urlSearch || searchQuery,
+      date: urlDate || dateFilter || undefined,
+      from: urlFrom || rangeFilter.from || undefined,
+      to: urlTo || rangeFilter.to || undefined,
+      type: urlType || typeFilter || undefined,
+    };
+    
+    console.log('[ViolationPage] API 호출 파라미터 (URL 우선):', params);
+    console.log('[ViolationPage] 현재 URL:', location.search);
+    
     try {
-      const { items, pagination } = await getViolations({
-        page,
-        limit,
-        search: searchQuery,
-        date: dateFilter || undefined,
-        from: rangeFilter.from || undefined,
-        to: rangeFilter.to || undefined,
-        type: typeFilter || undefined,
-      });
+      const { items, pagination } = await getViolations(params);
+      console.log('[ViolationPage] API 응답:', { items: items?.length, pagination });
+      
       setRows(Array.isArray(items) ? items : []);
       if (pagination) setPageMeta(pagination);
+      
+      // 데이터가 없고 1페이지가 아닌 경우, 자동 리다이렉트 방지를 위한 조건 추가
+      if (items.length === 0 && targetPage > 1 && pagination && pagination.totalItems > 0 && !isAutoRedirect) {
+        const actualTotalPages = Math.max(1, Math.ceil(pagination.totalItems / limit));
+        if (targetPage > actualTotalPages) {
+          // 마지막 페이지로 이동 (재귀 방지를 위해 isAutoRedirect = true)
+          setPage(actualTotalPages);
+          return load(actualTotalPages, true);
+        }
+      }
+      
+      setPage(targetPage);
     } catch (e) {
       setError(e?.message || 'Failed to load violations');
       setRows([]);
@@ -59,8 +98,8 @@ const ViolationPage = () => {
     }
   };
 
+  // Parse URL parameters and load data immediately
   useEffect(() => {
-    // parse filters from URL
     try {
       const sp = new URLSearchParams(location.search);
       const s = (sp.get('search') || '').trim();
@@ -69,31 +108,37 @@ const ViolationPage = () => {
       const t = (sp.get('to') || '').trim();
       const vt = (sp.get('type') || '').trim();
       const hl = (sp.get('hl') || '').trim();
+      
+      console.log('[ViolationPage] URL 변경 감지:', location.search);
+      console.log('[ViolationPage] 파싱된 필터:', { s, d, f, t, vt, hl });
+      
+      // 상태 업데이트
       setSearchQuery(s);
       setDateFilter(d);
       setRangeFilter({ from: f, to: t });
       setTypeFilter(vt);
       setHighlightMode(hl);
-    } catch (_) {}
-    setPage(1);
-    load();
+      setPage(1); // 페이지 리셋
+      
+      // URL 변경 시 즉시 데이터 로딩 (상태 업데이트 지연 문제 해결)
+      console.log('[ViolationPage] URL 변경으로 인한 즉시 로딩 실행');
+      load(1);
+      
+    } catch (err) {
+      console.error('[ViolationPage] URL 파싱 오류:', err);
+    }
+    
     const handler = () => load();
     window.addEventListener('parking-change', handler);
     return () => window.removeEventListener('parking-change', handler);
   }, [location.search]);
 
-  // Reload when filters change (ensures state is applied before fetching)
+  // Load data when page or limit changes (필터 변경은 위의 useEffect에서 처리)
   useEffect(() => {
-    // Reset to first page on filter changes
-    setPage(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, dateFilter, rangeFilter.from, rangeFilter.to, typeFilter]);
-
-  // Reload when page/limit or filters change
-  useEffect(() => {
+    console.log('[ViolationPage] 페이지/제한 변경으로 인한 로딩 트리거:', { page, limit });
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, limit, searchQuery, dateFilter, rangeFilter.from, rangeFilter.to, typeFilter]);
+  }, [page, limit]);
 
   // Compute which rows should be highlighted based on current filters
   // Convert DB timestamp string to local YYYY-MM-DD safely
@@ -224,7 +269,7 @@ const ViolationPage = () => {
         <MainpageTop />
         <Sidebar />
         <div className="content-area">
-          <div className="header">
+          <div className="header with-controls">
             <h1>위반차량 정보</h1>
             <div className="notif-tools">
               <ParkingControls />
@@ -247,21 +292,30 @@ const ViolationPage = () => {
                 </thead>
                 <tbody>
                   {rows.map((r) => {
-                    const isDone = !!r.admin_status;
+                    const isDone = /완료|확정|confirmed|종결|완료됨/.test(String(r.admin_status || '').toLowerCase());
+                    const isCompleted = isDone;
                     const busy = !!marking[r.violation_idx];
+                    const rowCls = [
+                      highlightSet.has(r.violation_idx) ? 'highlight-blink' : '',
+                      isCompleted ? 'processed' : 'pending',
+                    ].filter(Boolean).join(' ');
                     return (
-                      <tr key={r.violation_idx} className={highlightSet.has(r.violation_idx) ? 'highlight-blink' : ''}>
-                        <td>{r.ve_number}</td>
-                        <td>{r.parking_loc || r.space_id || '-'}</td>
-                        <td>{r.violation_type || '-'}</td>
-                        <td>{formatTime(r.violation_date)}</td>
-                        <td>{isDone ? r.admin_status : '미처리'}</td>
+                      <tr key={r.violation_idx} className={rowCls}>
+                        <td style={{ color: isCompleted ? '#9aa0a6' : 'inherit' }}>{r.ve_number}</td>
+                        <td style={{ color: isCompleted ? '#9aa0a6' : 'inherit' }}>{r.parking_loc || r.space_id || '-'}</td>
+                        <td style={{ color: isCompleted ? '#9aa0a6' : 'inherit' }}>{r.violation_type || '-'}</td>
+                        <td style={{ color: isCompleted ? '#9aa0a6' : 'inherit' }}>{formatTime(r.violation_date)}</td>
                         <td>
-                          {isDone ? (
+                          <span className={statusClass(r.admin_status || '미처리')}>
+                            {r.admin_status || '미처리'}
+                          </span>
+                        </td>
+                        <td>
+                          {isCompleted ? (
                             <span style={{ color: '#9aa0a6' }}>-</span>
                           ) : (
                             <button className="action-btn" disabled={busy} onClick={() => openModal(r.violation_idx)}>
-                              {busy ? '처리 중…' : '확인'}
+                              {busy ? '처리 중…' : '검토'}
                             </button>
                           )}
                         </td>
@@ -340,7 +394,7 @@ const Modal = ({ open, onClose, onConfirm, choice, setChoice, memo, setMemo, bus
         </div>
         <div className="modal-footer">
           <button onClick={onClose} disabled={busy} className="all-btn">취소</button>
-          <button onClick={onConfirm} disabled={busy || !choice} className="action-btn">{busy ? '처리 중…' : '확인'}</button>
+          <button onClick={onConfirm} disabled={busy || !choice} className="action-btn">{busy ? '처리 중…' : '검토'}</button>
         </div>
       </div>
     </div>

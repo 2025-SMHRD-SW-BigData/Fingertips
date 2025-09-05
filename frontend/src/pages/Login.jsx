@@ -35,7 +35,7 @@ export default function Login() {
       if (result?.adminName) localStorage.setItem('adminName', result.adminName);
       if (result?.admin_id) localStorage.setItem('admin_id', result.admin_id);
       if (result?.role) localStorage.setItem('role', result.role);
-      navigate('/mainpage', { replace: true });
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       console.error('Login error:', err);
       setError(err.message || '로그인에 실패했습니다. 다시 시도해 주세요.');

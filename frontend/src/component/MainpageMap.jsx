@@ -129,10 +129,11 @@ const MainpageMap = ({ parking_idx, maxWidth }) => {
 
   const containerStyle = useMemo(() => {
     const defaultClamp = 'clamp(520px, 60vw, 900px)';
-    const p2Clamp = 'clamp(480px, 52vw, 820px)'; // slightly smaller to reduce vertical footprint
+    const p2Clamp = 'clamp(480px, 52vw, 820px)';
     return {
+      width: '100%',
       maxWidth: maxWidth || (isP2 ? p2Clamp : defaultClamp),
-      margin: '0 auto',
+      margin: 0,
     };
   }, [maxWidth, isP2]);
 
@@ -143,21 +144,34 @@ const MainpageMap = ({ parking_idx, maxWidth }) => {
     const el = containerRef.current;
     if (!el) return;
     const ratio = viewBox.height / viewBox.width;
-    const update = () => {
+    const compute = () => {
       const w = el.clientWidth || el.getBoundingClientRect().width || 0;
-      setStageHeight(Math.max(1, Math.round(w * ratio)));
+      const raw = Math.max(1, Math.round(w * ratio));
+      const vh = (typeof window !== 'undefined' ? window.innerHeight : 0) || 0;
+      const cap = vh ? Math.floor(Math.min(vh * 0.6, 640)) : 640;
+      setStageHeight(Math.min(raw, cap));
     };
-    let ro;
+    let ro; let raf = 0; let tid = 0;
+    const schedule = () => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        if (tid) clearTimeout(tid);
+        tid = setTimeout(compute, 50);
+      });
+    };
     if (typeof window !== 'undefined' && 'ResizeObserver' in window) {
-      ro = new ResizeObserver(update);
+      ro = new ResizeObserver(schedule);
       try { ro.observe(el); } catch (_) {}
+      window.addEventListener('resize', schedule);
     } else if (typeof window !== 'undefined') {
-      window.addEventListener('resize', update);
+      window.addEventListener('resize', schedule);
     }
-    update();
+    compute();
     return () => {
       if (ro) { try { ro.disconnect(); } catch (_) {} }
-      else if (typeof window !== 'undefined') { window.removeEventListener('resize', update); }
+      if (typeof window !== 'undefined') { window.removeEventListener('resize', schedule); }
+      if (raf) cancelAnimationFrame(raf);
+      if (tid) clearTimeout(tid);
     };
   }, [viewBox]);
 

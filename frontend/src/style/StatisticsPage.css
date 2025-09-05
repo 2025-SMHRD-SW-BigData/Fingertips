@@ -115,6 +115,7 @@
 
 .pie-svg path {
   cursor: pointer;
+  stroke: none; /* ensure no outer stroke around wedges */
 }
 
 .legend {
@@ -168,4 +169,69 @@
   background: var(--accent-blue);
   border-color: var(--accent-blue);
   color: #fff;
+}
+
+/* Weekend bars styling */
+.bar.weekend {
+  background: linear-gradient(to top, #e53e3e, #ff6b7a);
+}
+
+/* Peak hour bars styling */
+.bar.peak-hour {
+  background: linear-gradient(to top, #d69e2e, #f6e05e);
+  border: 2px solid #b7791f;
+}
+
+/* Simple pie chart styling */
+.simple-pie-chart {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.pie-circle {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pie-center {
+  background: var(--bg-surface);
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--border);
+}
+
+.pie-total {
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--text-body);
+}
+
+.pie-label {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+/* Pie segment labels */
+.pie-label-segment {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  z-index: 1;
 }

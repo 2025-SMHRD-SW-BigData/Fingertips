@@ -7,13 +7,26 @@ const formatTime = (iso) => {
   if (!iso) return '-';
   try {
     const d = new Date(iso);
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const parts = new Intl.DateTimeFormat('ko-KR', {
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    }).formatToParts(d);
+    const get = (t) => parts.find((p) => p.type === t)?.value || '';
+    const mm = String(get('month')).padStart(2, '0');
+    const dd = String(get('day')).padStart(2, '0');
+    const ap = get('dayPeriod'); // 오전/오후
+    const hh = get('hour');
+    const mi = get('minute');
+    return `${mm}월 ${dd}일 ${ap} ${hh}:${mi}`;
   } catch {
     return '-';
   }
 };
 
-const Main_inout = () => {
+const Main_inout = ({ asCard = false }) => {
   const [rows, setRows] = useState([]);
 
   useEffect(() => {
@@ -34,8 +47,9 @@ const Main_inout = () => {
     };
   }, []);
 
+  const wrapperClass = asCard ? 'card' : 'inout box-style';
   return (
-    <div className='inout box-style'>
+    <div className={wrapperClass}>
       <div className="header">
         <h3>입·출차 기록</h3>
         <Link to="/inout" className="all-btn">전체 보기</Link>
@@ -76,4 +90,3 @@ const Main_inout = () => {
 };
 
 export default Main_inout;
-

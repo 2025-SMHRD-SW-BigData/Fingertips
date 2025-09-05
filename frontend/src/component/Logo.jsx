@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 const Logo = () => {
   return (
     <div className='Mainpage_logo box-style'>
-      <Link to="/mainpage" style={{ textDecoration: 'none', color: 'inherit' }}>
+      <Link to="/dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
         <div className="logo-container">
           <img 
             src={logo} 

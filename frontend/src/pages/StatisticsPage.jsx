@@ -5,7 +5,7 @@ import '../style/StatisticsPage.css';
 import Sidebar from '../component/Sidebar';
 import MainpageTop from '../component/MainpageTop';
 import Logo from '../component/Logo';
-import { getStatsByType, getStatsByDate, getStatsByLocation, getStatsByHour } from '../services/api';
+import { getStatsByType, getStatsByDate, getStatsByLocation, getStatsByHour, getStatsByWeekday, exportStatsCSV, exportStatsExcel } from '../services/api';
 import ParkingControls from '../component/ParkingControls';
 
 const StatisticsPage = () => {
@@ -21,13 +21,31 @@ const StatisticsPage = () => {
   const [byDate, setByDate] = useState({ data: [], loading: true, error: null });
   const [byHour, setByHour] = useState({ data: [], loading: false, error: null });
   const [byLocation, setByLocation] = useState({ data: [], loading: true, error: null });
+  const [byWeekday, setByWeekday] = useState({ data: [], loading: true, error: null });
   const [parkingIdx, setParkingIdx] = useState(() => (typeof localStorage !== 'undefined' ? (localStorage.getItem('parking_idx') || '') : ''));
   const [ttType, setTtType] = useState({ visible: false, x: 0, y: 0, content: null, pinned: false });
   const [ttDate, setTtDate] = useState({ visible: false, x: 0, y: 0, content: null, pinned: false });
   const [ttLoc, setTtLoc] = useState({ visible: false, x: 0, y: 0, content: null, pinned: false });
+  const [ttWeekday, setTtWeekday] = useState({ visible: false, x: 0, y: 0, content: null, pinned: false });
   const [granularity, setGranularity] = useState('day');
   const [chartRange, setChartRange] = useState({ from: '', to: '' });
+  const [typeChartMode, setTypeChartMode] = useState('bar'); // 'bar' or 'pie'
   const navigate = useNavigate();
+
+  // Export handlers
+  const handleExportCSV = () => {
+    const exportParams = {};
+    if (filters.from) exportParams.from = filters.from;
+    if (filters.to) exportParams.to = filters.to;
+    exportStatsCSV(exportParams);
+  };
+
+  const handleExportExcel = () => {
+    const exportParams = {};
+    if (filters.from) exportParams.from = filters.from;
+    if (filters.to) exportParams.to = filters.to;
+    exportStatsExcel(exportParams);
+  };
 
   // Helpers for date formats and YEARWEEK conversion
   const onlyDate = (v) => /^\d{4}-\d{2}-\d{2}$/.test(String(v));
@@ -124,6 +142,15 @@ const StatisticsPage = () => {
         setByDate({ data: Array.isArray(rows) ? rows : [], loading: false, error: null });
       })
       .catch((err) => alive && setByDate({ data: [], loading: false, error: err.message || 'Failed to load' }));
+
+    // Weekday stats
+    setByWeekday((s) => ({ ...s, loading: true, error: null }));
+    getStatsByWeekday(params)
+      .then((rows) => {
+        if (!alive) return;
+        setByWeekday({ data: Array.isArray(rows) ? rows : [], loading: false, error: null });
+      })
+      .catch((err) => alive && setByWeekday({ data: [], loading: false, error: err.message || 'Failed to load' }));
 
     return () => {
       alive = false;
@@ -277,7 +304,30 @@ const StatisticsPage = () => {
       }
       return { label, value: Number(r[valueKey] ?? 0), meta };
     });
-    if (granularity === 'day' && mapped.length > 7) return mapped.slice(-7);
+    if (granularity === 'day') {
+      // Build last 7 days window ending at filters.to or today
+      const end = (() => {
+        const base = (filters.to && /^\d{4}-\d{2}-\d{2}$/.test(filters.to)) ? new Date(filters.to) : new Date();
+        // normalize to local midnight
+        return new Date(base.getFullYear(), base.getMonth(), base.getDate());
+      })();
+      const toISO = (d) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+      };
+      const valueByDate = new Map();
+      mapped.forEach((d) => { if (d.meta && d.meta.date) valueByDate.set(d.meta.date, Number(d.value || 0)); });
+      const out = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(end);
+        d.setDate(end.getDate() - i);
+        const iso = toISO(d);
+        out.push({ label: iso.slice(5), value: valueByDate.get(iso) || 0, meta: { date: iso } });
+      }
+      return out;
+    }
     return mapped;
   }, [byDate.data, filters.from, filters.to, granularity]);
 
@@ -323,7 +373,7 @@ const StatisticsPage = () => {
         <MainpageTop />
         <Sidebar />
         <div className="content-area">
-          <div className="header">
+          <div className="header with-controls">
             <h1>통계 분석</h1>
             <div className="stats-tools">
               <ParkingControls />
@@ -352,14 +402,134 @@ const StatisticsPage = () => {
                   setTtType({ visible: false, x: 0, y: 0, content: null, pinned: false });
                 }}
               >
-                <h2>위반 유형별</h2>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                  <h2>위반 유형별</h2>
+                  <div className="chart-toggle" role="group" aria-label="Chart type">
+                    <button 
+                      type="button" 
+                      className={typeChartMode === 'bar' ? 'toggle active' : 'toggle'} 
+                      onClick={() => setTypeChartMode('bar')}
+                    >
+                      막대
+                    </button>
+                    <button 
+                      type="button" 
+                      className={typeChartMode === 'pie' ? 'toggle active' : 'toggle'} 
+                      onClick={() => setTypeChartMode('pie')}
+                    >
+                      파이
+                    </button>
+                  </div>
+                </div>
                 {byType.loading ? (
                   <div>Loading...</div>
                 ) : byType.error ? (
                   <div>Error: {byType.error}</div>
                 ) : typeChart.length === 0 ? (
                   <div>No data.</div>
+                ) : typeChartMode === 'pie' ? (
+                  // Pie Chart Implementation
+                  <div className="pie-chart-container" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <svg 
+                      className="pie-svg" 
+                      viewBox="0 0 300 300" 
+                      style={{ width: '300px', height: '300px', flex: '0 0 300px' }}
+                    >
+                      {(() => {
+                        const total = sumVal(typeChart);
+                        if (total === 0) return null;
+                        
+                        let currentAngle = -Math.PI / 2; // Start from top
+                        const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6b7280'];
+                        
+                        return typeChart.map((d, idx) => {
+                          const percentage = d.value / total;
+                          const angle = percentage * 2 * Math.PI;
+                          const endAngle = currentAngle + angle;
+                          
+                          const largeArcFlag = angle > Math.PI ? 1 : 0;
+                          const x1 = 150 + 120 * Math.cos(currentAngle);
+                          const y1 = 150 + 120 * Math.sin(currentAngle);
+                          const x2 = 150 + 120 * Math.cos(endAngle);
+                          const y2 = 150 + 120 * Math.sin(endAngle);
+                          
+                          const path = percentage === 1 
+                            ? `M 150,150 L 150,30 A 120,120 0 1,1 149.9,30 Z`
+                            : `M 150,150 L ${x1},${y1} A 120,120 0 ${largeArcFlag},1 ${x2},${y2} Z`;
+                          
+                          const midAngle = currentAngle + angle / 2;
+                          const labelX = 150 + 140 * Math.cos(midAngle);
+                          const labelY = 150 + 140 * Math.sin(midAngle);
+                          
+                          const slice = (
+                            <g key={idx}>
+                              <path
+                                d={path}
+                                fill={colors[idx % colors.length]}
+                                style={{ cursor: 'pointer' }}
+                                onMouseEnter={(e) => {
+                                  const rect = e.currentTarget.closest('.chart').getBoundingClientRect();
+                                  setTtType({
+                                    visible: true,
+                                    x: e.clientX - rect.left,
+                                    y: e.clientY - rect.top,
+                                    content: (
+                                      <div>
+                                        <div><strong>{d.label}</strong></div>
+                                        <div>건수: {d.value.toLocaleString()}</div>
+                                        <div>비율: {Math.round(percentage * 100)}%</div>
+                                      </div>
+                                    ),
+                                    pinned: false,
+                                  });
+                                }}
+                                onMouseLeave={() => setTtType((s) => (s.pinned ? s : { ...s, visible: false }))}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (d.value === 0) return;
+                                  const qs = new URLSearchParams();
+                                  if (chartRange.from) qs.set('from', chartRange.from);
+                                  if (chartRange.to) qs.set('to', chartRange.to);
+                                  if (d.label) qs.set('type', d.label);
+                                  qs.set('hl', 'type');
+                                  const url = `/violations?${qs.toString()}`;
+                                  navigate(url);
+                                }}
+                              />
+                              {/* Removed inline % labels on pie slices (hover tooltip is sufficient) */}
+                            </g>
+                          );
+                          
+                          currentAngle = endAngle;
+                          return slice;
+                        });
+                      })()}
+                    </svg>
+                    <div className="pie-legend">
+                      {typeChart.map((d, idx) => {
+                        const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6b7280'];
+                        const total = sumVal(typeChart);
+                        return (
+                          <div key={idx} className="legend-item" style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                            <div 
+                              style={{ 
+                                width: '16px', 
+                                height: '16px', 
+                                backgroundColor: colors[idx % colors.length], 
+                                marginRight: '8px',
+                                borderRadius: '2px'
+                              }} 
+                            />
+                            <span style={{ fontSize: '14px' }}>
+                              {d.label}: {d.value.toLocaleString()}건
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 ) : (
+                  // Bar Chart Implementation (existing)
                   <div className="bar-chart">
                     {typeChart.map((d, idx) => (
                       <div
@@ -387,12 +557,14 @@ const StatisticsPage = () => {
                         onMouseLeave={() => setTtType((s) => (s.pinned ? s : { ...s, visible: false }))}
                         onClick={(e) => {
                           e.stopPropagation();
+                          if (d.value === 0) return;
                           const qs = new URLSearchParams();
                           if (chartRange.from) qs.set('from', chartRange.from);
                           if (chartRange.to) qs.set('to', chartRange.to);
                           if (d.label) qs.set('type', d.label);
                           qs.set('hl', 'type');
-                          navigate(`/violations?${qs.toString()}`);
+                          const url = `/violations?${qs.toString()}`;
+                          navigate(url);
                         }}
                       >
                         <div className="bar-value">{d.value}</div>
@@ -425,76 +597,107 @@ const StatisticsPage = () => {
                   <div>No data.</div>
                 ) : (
                   <>
-                    <svg className="pie-svg" viewBox="0 0 180 180">
+                    <div className="simple-pie-chart">
                       {(() => {
                         const total = sumVal(locationChart) || 1;
-                        const cx = 90, cy = 90, r = 80;
-                        const colors = ['#e53e3e', '#4a5568', '#38a169', '#3182ce', '#dd6b20', '#805ad5', '#2b6cb0', '#d53f8c'];
-                        let startAngle = -90; // start at top
-                        const toRad = (deg) => (deg * Math.PI) / 180;
-                        const polar = (angle) => ({ x: cx + r * Math.cos(toRad(angle)), y: cy + r * Math.sin(toRad(angle)) });
-                        return locationChart.map((d, i) => {
-                          const pct = d.value / total;
-                          const angle = pct * 360;
-                          const endAngle = startAngle + angle;
-                          const largeArc = angle > 180 ? 1 : 0;
-                          const p1 = polar(startAngle);
-                          const p2 = polar(endAngle);
-                          const dPath = [
-                            `M ${cx} ${cy}`,
-                            `L ${p1.x.toFixed(2)} ${p1.y.toFixed(2)}`,
-                            `A ${r} ${r} 0 ${largeArc} 1 ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`,
-                            'Z',
-                          ].join(' ');
-                          const mid = startAngle + angle / 2;
-                          const labelPos = { x: cx + (r * 0.6) * Math.cos(toRad(mid)), y: cy + (r * 0.6) * Math.sin(toRad(mid)) };
-                          const seg = (
-                            <g key={i}>
-                              <path
-                                d={dPath}
-                                fill={colors[i % colors.length]}
-                                onMouseEnter={(e) => {
-                                  const chartEl = e.currentTarget.closest('.chart');
-                                  const rect = (chartEl && chartEl.getBoundingClientRect()) || e.currentTarget.getBoundingClientRect();
+                        const colors = ['#3182ce', '#e53e3e', '#38a169', '#dd6b20', '#805ad5', '#2b6cb0', '#d53f8c']; // 색상 순서 조정 (불법주차-파랑)
+                        let cumulativePercent = 0;
+                        
+                        const gradientStops = locationChart.map((d, i) => {
+                          const percent = (d.value / total) * 100;
+                          const startPercent = cumulativePercent;
+                          const endPercent = cumulativePercent + percent;
+                          cumulativePercent = endPercent;
+                          return `${colors[i % colors.length]} ${startPercent}% ${endPercent}%`;
+                        }).join(', ');
+                        
+                        
+                        return (
+                          <div 
+                            className="pie-circle" 
+                            style={{ background: `conic-gradient(${gradientStops})` }}
+                            onClick={(e) => {
+                              // Calculate which segment was clicked based on mouse position
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              const centerX = rect.width / 2;
+                              const centerY = rect.height / 2;
+                              const x = e.clientX - rect.left - centerX;
+                              const y = e.clientY - rect.top - centerY;
+                              let angle = Math.atan2(y, x) * (180 / Math.PI);
+                              if (angle < 0) angle += 360;
+                              angle = (angle + 90) % 360; // Adjust for conic-gradient starting at top
+                              
+                              let cumulative = 0;
+                              for (let i = 0; i < locationChart.length; i++) {
+                                const percent = (locationChart[i].value / total) * 100;
+                                if (angle >= cumulative && angle < cumulative + percent) {
+                                  const d = locationChart[i];
+                                  if (d.value === 0) return;
+                                  
+                                  // Navigate to violations page filtered by location
+                                  const qs = new URLSearchParams();
+                                  if (filters.from) qs.set('from', filters.from);
+                                  if (filters.to) qs.set('to', filters.to);
+                                  if (d.label) qs.set('search', d.label);
+                                  qs.set('hl', 'location');
+                                  const url = `/violations?${qs.toString()}`;
+                                  console.log(`[StatisticsPage] 위치별 차트 클릭 - ${d.label} (${d.value}건)`);
+                                  navigate(url);
+                                  break;
+                                }
+                                cumulative += percent;
+                              }
+                            }}
+                            onMouseMove={(e) => {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              const centerX = rect.width / 2;
+                              const centerY = rect.height / 2;
+                              const x = e.clientX - rect.left - centerX;
+                              const y = e.clientY - rect.top - centerY;
+                              let angle = Math.atan2(y, x) * (180 / Math.PI);
+                              if (angle < 0) angle += 360;
+                              angle = (angle + 90) % 360;
+                              
+                              let cumulative = 0;
+                              for (let i = 0; i < locationChart.length; i++) {
+                                const percent = (locationChart[i].value / total) * 100;
+                                if (angle >= cumulative && angle < cumulative + percent) {
+                                  const d = locationChart[i];
                                   setTtLoc({
                                     visible: true,
-                                    x: e.clientX - rect.left,
-                                    y: e.clientY - rect.top,
+                                    x: e.clientX - e.currentTarget.closest('.chart').getBoundingClientRect().left,
+                                    y: e.clientY - e.currentTarget.closest('.chart').getBoundingClientRect().top,
                                     content: (
                                       <div>
                                         <div><strong>{d.label}</strong></div>
                                         <div>건수: {d.value.toLocaleString()}</div>
-                                        <div>비율: {Math.round(pct * 100)}%</div>
+                                        <div>비율: {Math.round((d.value / total) * 100)}%</div>
                                       </div>
                                     ),
                                     pinned: false,
                                   });
-                                }}
-                                onMouseLeave={() => setTtLoc((s) => (s.pinned ? s : { ...s, visible: false }))}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setTtLoc((s) => ({ ...s, pinned: !s.pinned, visible: true }));
-                                }}
-                              />
-                              {pct > 0.07 && (
-                                <text x={labelPos.x} y={labelPos.y} fill="#fff" fontSize="11" textAnchor="middle" dominantBaseline="middle">
-                                  {d.value}
-                                </text>
-                              )}
-                            </g>
-                          );
-                          startAngle = endAngle;
-                          return seg;
-                        });
+                                  break;
+                                }
+                                cumulative += percent;
+                              }
+                            }}
+                            onMouseLeave={() => setTtLoc((s) => (s.pinned ? s : { ...s, visible: false }))}
+                          >
+                            <div className="pie-center">
+                              <div className="pie-total">{total}</div>
+                              <div className="pie-label">총 건수</div>
+                            </div>
+                          </div>
+                        );
                       })()}
-                    </svg>
+                    </div>
                     <div className="legend">
                       {locationChart.map((d, i) => {
-                        const colors = ['#e53e3e', '#4a5568', '#38a169', '#3182ce', '#dd6b20', '#805ad5', '#2b6cb0', '#d53f8c'];
+                        const colors = ['#3182ce', '#e53e3e', '#38a169', '#dd6b20', '#805ad5', '#2b6cb0', '#d53f8c'];
                         return (
                           <div className="legend-item" key={i}>
                             <span className="legend-color" style={{ backgroundColor: colors[i % colors.length] }} />
-                            <span>{d.label}: {d.value}</span>
+                            <span>{d.label}</span>
                           </div>
                         );
                       })}
@@ -561,6 +764,7 @@ const StatisticsPage = () => {
                             onMouseLeave={() => setTtDate((s) => (s.pinned ? s : { ...s, visible: false }))}
                             onClick={(e) => {
                               e.stopPropagation();
+                              if (d.value === 0) return; // 0건인 점은 클릭 무시
                               // Navigate to violations filtered by the selected time bucket
                               const qs = new URLSearchParams();
                               if (granularity === 'day' && d.meta?.date) {
@@ -575,7 +779,10 @@ const StatisticsPage = () => {
                                 qs.set('to', d.meta.to);
                                 qs.set('hl', 'range');
                               }
-                              navigate(`/violations?${qs.toString()}`);
+                              const url = `/violations?${qs.toString()}`;
+                              console.log('[StatisticsPage] 차트 클릭 - 시간대:', granularity, d.meta);
+                              console.log('[StatisticsPage] 이동 URL:', url);
+                              navigate(url);
                               setTtDate((s) => ({ ...s, pinned: !s.pinned, visible: true }));
                             }}
                       />
@@ -603,6 +810,150 @@ const StatisticsPage = () => {
               <button type="button" className={granularity === 'month' ? 'toggle active' : 'toggle'} aria-pressed={granularity === 'month'} onClick={() => setGranularity('month')}>월별</button>
             </div>
           </div>
+
+          {/* 요일별 위반 분석 차트 (주별/월별 보기에서만 표시) */}
+          {(granularity === 'week' || granularity === 'month') && (
+            <div
+            className="chart"
+            onMouseMove={(e) => {
+              if (!ttWeekday.visible) return;
+              const rect = e.currentTarget.getBoundingClientRect();
+              setTtWeekday((s) => ({ ...s, x: e.clientX - rect.left, y: e.clientY - rect.top }));
+            }}
+            onClick={(e) => {
+              if (e.target.closest('.bar')) return;
+              setTtWeekday({ visible: false, x: 0, y: 0, content: null, pinned: false });
+            }}
+          >
+            <h2>요일별 위반 분석</h2>
+            {byWeekday.loading ? (
+              <div>Loading...</div>
+            ) : byWeekday.error ? (
+              <div>Error: {byWeekday.error}</div>
+            ) : byWeekday.data.length === 0 ? (
+              <div>No data.</div>
+            ) : (
+              <div className="bar-chart">
+                {byWeekday.data.map((d, idx) => {
+                  const total = byWeekday.data.reduce((sum, item) => sum + item.count, 0);
+                  const max = Math.max(...byWeekday.data.map(item => item.count));
+                  const pct = max > 0 ? (d.count / max) * 100 : 0;
+                  const isWeekend = d.dayIndex === 1 || d.dayIndex === 7; // 일요일(1), 토요일(7)
+                  return (
+                    <div
+                      key={idx}
+                      className={`bar ${isWeekend ? 'weekend' : 'weekday'}`}
+                      style={{ height: `${pct}%` }}
+                      onMouseEnter={(e) => {
+                        const rect = e.currentTarget.closest('.chart').getBoundingClientRect();
+                        setTtWeekday({
+                          visible: true,
+                          x: e.clientX - rect.left,
+                          y: e.clientY - rect.top,
+                          content: (
+                            <div>
+                              <div><strong>{d.weekday}</strong></div>
+                              <div>위반 건수: {d.count.toLocaleString()}</div>
+                              <div>비율: {total ? Math.round((d.count / total) * 100) : 0}%</div>
+                              <div style={{ fontSize: '0.85em', color: '#64748b', marginTop: 4 }}>
+                                {isWeekend ? '주말' : '평일'}
+                              </div>
+                            </div>
+                          ),
+                          pinned: false,
+                        });
+                      }}
+                      onMouseLeave={() => setTtWeekday((s) => (s.pinned ? s : { ...s, visible: false }))}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (d.count === 0) return;
+                        
+                        // Navigate to violations page filtered by specific days matching this weekday
+                        const qs = new URLSearchParams();
+                        
+                        // Calculate specific dates that match this weekday within the selected range
+                        const weekdayMap = {
+                          '일요일': 0, '월요일': 1, '화요일': 2, '수요일': 3,
+                          '목요일': 4, '금요일': 5, '토요일': 6
+                        };
+                        
+                        const targetWeekday = weekdayMap[d.weekday];
+                        if (targetWeekday !== undefined) {
+                          // Find all dates in the range that match this weekday
+                          const fromDate = filters.from ? new Date(filters.from) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+                          const toDate = filters.to ? new Date(filters.to) : new Date();
+                          
+                          const matchingDates = [];
+                          const currentDate = new Date(fromDate);
+                          
+                          while (currentDate <= toDate) {
+                            if (currentDate.getDay() === targetWeekday) {
+                              matchingDates.push(currentDate.toISOString().slice(0, 10));
+                            }
+                            currentDate.setDate(currentDate.getDate() + 1);
+                          }
+                          
+                          // If we have matching dates, filter by them using weekday parameter
+                          if (matchingDates.length > 0) {
+                            qs.set('weekday', d.weekday);
+                            if (filters.from) qs.set('from', filters.from);
+                            if (filters.to) qs.set('to', filters.to);
+                          }
+                        }
+                        
+                        qs.set('hl', 'weekday');
+                        const url = `/violations?${qs.toString()}`;
+                        console.log(`[StatisticsPage] 요일별 차트 클릭 - ${d.weekday} (${d.count}건)`);
+                        navigate(url);
+                        setTtWeekday((s) => ({ ...s, pinned: !s.pinned, visible: true }));
+                      }}
+                    >
+                      <div className="bar-label">{d.weekday}</div>
+                      <div className="bar-value">{d.count}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <Tooltip visible={ttWeekday.visible} x={ttWeekday.x} y={ttWeekday.y}>{ttWeekday.content}</Tooltip>
+          </div>
+          )}
+
+          {/* 시간대별 위반 분석 차트 (단일 날짜 선택 시에만 표시) */}
+          {filters.date && (
+            <div className="chart">
+              <h2>시간대별 위반 분석 ({filters.date})</h2>
+              {byHour.loading ? (
+                <div>Loading...</div>
+              ) : byHour.error ? (
+                <div>Error: {byHour.error}</div>
+              ) : hourChart.length === 0 ? (
+                <div>No data.</div>
+              ) : (
+                <div className="bar-chart">
+                  {hourChart.map((d, idx) => {
+                    const max = Math.max(...hourChart.map(item => item.value));
+                    const pct = max > 0 ? (d.value / max) * 100 : 0;
+                    const hour = parseInt(d.label.split(':')[0]);
+                    const isPeakHour = (hour >= 7 && hour <= 9) || (hour >= 17 && hour <= 19) || (hour >= 12 && hour <= 13);
+                    
+                    return (
+                      <div
+                        key={idx}
+                        className={`bar ${isPeakHour ? 'peak-hour' : ''}`}
+                        style={{ height: `${pct}%` }}
+                        title={`${d.label}: ${d.value}건`}
+                      >
+                        <div className="bar-label">{d.label}</div>
+                        <div className="bar-value">{d.value}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
             </div>
 
           </div>

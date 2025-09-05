@@ -47,7 +47,7 @@ const InOutPage = () => {
         <MainpageTop />
         <Sidebar />
         <div className="content-area">
-          <div className="header">
+          <div className="header with-controls">
             <h1>입·출차 기록</h1>
             <div className="notif-tools">
               <ParkingControls />
@@ -96,4 +96,3 @@ const InOutPage = () => {
 };
 
 export default InOutPage;
-

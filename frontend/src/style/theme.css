@@ -37,3 +37,16 @@
 /* Overlay stroke color for slots */
 .theme-dark { --slot-stroke: rgba(255,255,255,0.85); }
 .theme-light { --slot-stroke: rgba(17, 24, 39, 0.7); }
+
+/* Global resets and layout baseline */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+body {
+  margin: 0; /* remove default UA margin causing top gap */
+  background-color: var(--bg-body);
+  color: var(--text-body);
+}
+*, *::before, *::after { box-sizing: border-box; }

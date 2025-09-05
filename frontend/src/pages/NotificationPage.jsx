@@ -13,7 +13,7 @@ const NotificationPage = () => {
   const [marking, setMarking] = useState({});
   const [markingAll, setMarkingAll] = useState(false);
   const [page, setPage] = useState(1);
-  const pageSize = 20; // fixed page size (no selector)
+  const pageSize = 5; // fixed page size (no selector)
 
   useEffect(() => {
     let mounted = true;
@@ -132,7 +132,7 @@ const NotificationPage = () => {
         <MainpageTop />
         <Sidebar />
         <div className="content-area">
-          <div className="header">
+          <div className="header with-controls">
             <h1>알림 내역</h1>
             <div className="notif-tools">
               <ParkingControls />
@@ -161,13 +161,14 @@ const NotificationPage = () => {
                 <tbody>
                   {pageItems.map((n) => {
                     const isUnread = !n.read_at;
+                    const isRead = !isUnread;
                     const busy = !!marking[n.alert_idx];
                     return (
                       <tr key={n.alert_idx} className={isUnread ? 'unread' : ''}>
-                        <td>{n.alert_msg}</td>
-                        <td>{n.alert_type || '-'}</td>
-                        <td>{n.sent_at ? new Date(n.sent_at).toLocaleString() : '-'}</td>
-                        <td>{isUnread ? '미읽음' : '읽음'}</td>
+                        <td style={{ color: isRead ? '#9aa0a6' : 'inherit' }}>{n.alert_msg}</td>
+                        <td style={{ color: isRead ? '#9aa0a6' : 'inherit' }}>{n.alert_type || '-'}</td>
+                        <td style={{ color: isRead ? '#9aa0a6' : 'inherit' }}>{n.sent_at ? new Date(n.sent_at).toLocaleString() : '-'}</td>
+                        <td style={{ color: isRead ? '#9aa0a6' : 'inherit' }}>{isUnread ? '미읽음' : '읽음'}</td>
                         <td>
                           {isUnread ? (
                             <button className="action-btn" disabled={busy} onClick={() => handleMarkRead(n.alert_idx)}>
@@ -201,4 +202,3 @@ const NotificationPage = () => {
 };
 
 export default NotificationPage;
-

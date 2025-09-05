@@ -4,8 +4,10 @@ import disabled from "../assets/disabled.png";
 import parking from "../assets/parking.png";
 import notcar from "../assets/notcar.png";
 import { getDashboardSummary } from '../services/api';
+import { useTheme } from '../theme/ThemeProvider';
 
 const StatBox = ({ icon, title, value, total, valueColor, loading }) => {
+  const { theme } = useTheme ? useTheme() : { theme: 'dark' };
   let districtName = '';
   try { districtName = localStorage.getItem('district_name') || ''; } catch (_) {}
   const dn = String(districtName || '').toLowerCase();
@@ -14,7 +16,7 @@ const StatBox = ({ icon, title, value, total, valueColor, loading }) => {
   const displayTotal = isGwangsan ? 0 : total;
   return (
     <div className='stat-box'>
-      <img src={icon} alt={title} style={{ width: "80px", height: "80px", filter: 'brightness(0) invert(1)' }} />
+      <img src={icon} alt={title} style={{ width: '80px', height: '80px', filter: theme === 'dark' ? 'brightness(0) invert(1)' : 'none' }} />
       <div className="stat-box-main">
         <div style={{ fontSize: "24px", fontFamily: "'Pretendard Variable', sans-serif" }}>{title}</div>
         <div>

@@ -21,6 +21,7 @@ router.get('/', async (req, res, next) => {
     const from = (req.query.from || '').trim();
     const to = (req.query.to || '').trim();
     const vtype = (req.query.type || '').trim();
+    const weekday = (req.query.weekday || '').trim();
     const parkingIdx = parseInt(req.query.parking_idx, 10);
 
     const where = [];
@@ -49,6 +50,18 @@ router.get('/', async (req, res, next) => {
     if (vtype) {
       where.push('v.violation_type = ?');
       params.push(vtype);
+    }
+    if (weekday) {
+      // Map Korean weekday names to MySQL DAYOFWEEK values (1=Sunday, 2=Monday, ...)
+      const weekdayMap = {
+        '일요일': 1, '월요일': 2, '화요일': 3, '수요일': 4,
+        '목요일': 5, '금요일': 6, '토요일': 7
+      };
+      const dayOfWeek = weekdayMap[weekday];
+      if (dayOfWeek) {
+        where.push('DAYOFWEEK(v.created_at) = ?');
+        params.push(dayOfWeek);
+      }
     }
     const status = (req.query.status || '').toString().trim().toLowerCase();
     if (status === 'pending' || status === 'unprocessed') {
@@ -90,11 +103,12 @@ router.get('/', async (req, res, next) => {
     );
 
     res.json({
-      data,
+      items: data,
       pagination: {
         totalItems,
         totalPages: Math.max(1, Math.ceil((totalItems || 0) / limit)),
         currentPage: page,
+        pageSize: limit,
       },
     });
   } catch (err) {

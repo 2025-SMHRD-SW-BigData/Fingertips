@@ -178,8 +178,25 @@ const MainpageTop = ({ showParkingControls = false }) => {
     return `${y}-${m}-${day} ${hh}:${mm}:${ss}`;
   };
 
+  const toggleSidebar = () => {
+    try {
+      document.body.classList.toggle('sidebar-open');
+    } catch (_) {}
+  };
+
+  const closeSidebar = () => {
+    try { document.body.classList.remove('sidebar-open'); } catch (_) {}
+  };
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') closeSidebar(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   return (
     <div className={`Top_box box-style${showParkingControls ? ' has-controls' : ''}`}>
+
       <div className="search-container" ref={searchRef}>
         <img src={search} alt="Search" className="search-icon" />
         <input
@@ -193,8 +210,26 @@ const MainpageTop = ({ showParkingControls = false }) => {
             if (e.key === 'Enter') {
               const kw = (q || '').trim();
               if (kw.length >= 1) {
+                console.log('[MainpageTop] 검색 실행:', kw);
+                console.log('[MainpageTop] 이동 URL:', `/violations?search=${encodeURIComponent(kw)}`);
+                console.log('[MainpageTop] navigate 함수:', typeof navigate);
+                console.log('[MainpageTop] 현재 위치:', window.location.pathname);
                 setOpenSearch(false);
-                navigate(`/violations?search=${encodeURIComponent(kw)}`);
+                try {
+                  navigate(`/violations?search=${encodeURIComponent(kw)}`);
+                  console.log('[MainpageTop] navigate 호출 완료');
+                  // 강제로 페이지 이동 시도
+                  setTimeout(() => {
+                    console.log('[MainpageTop] 이동 후 위치:', window.location.pathname);
+                    if (window.location.pathname !== '/violations') {
+                      console.warn('[MainpageTop] 페이지 이동 실패, 강제 이동 시도');
+                      window.location.href = `/violations?search=${encodeURIComponent(kw)}`;
+                    }
+                  }, 100);
+                } catch (err) {
+                  console.error('[MainpageTop] navigate 오류:', err);
+                  window.location.href = `/violations?search=${encodeURIComponent(kw)}`;
+                }
               }
             }
           }}
@@ -214,8 +249,24 @@ const MainpageTop = ({ showParkingControls = false }) => {
                       type="button"
                       onClick={() => {
                         const kw = it.ve_number || it.parking_loc || (q || '').trim();
+                        console.log('[MainpageTop] 검색 제안 클릭:', kw);
+                        console.log('[MainpageTop] 이동 URL:', `/violations?search=${encodeURIComponent(kw)}`);
+                        console.log('[MainpageTop] 현재 위치:', window.location.pathname);
                         setOpenSearch(false);
-                        navigate(`/violations?search=${encodeURIComponent(kw)}`);
+                        try {
+                          navigate(`/violations?search=${encodeURIComponent(kw)}`);
+                          console.log('[MainpageTop] navigate 호출 완료 (제안)');
+                          setTimeout(() => {
+                            console.log('[MainpageTop] 이동 후 위치 (제안):', window.location.pathname);
+                            if (window.location.pathname !== '/violations') {
+                              console.warn('[MainpageTop] 페이지 이동 실패 (제안), 강제 이동 시도');
+                              window.location.href = `/violations?search=${encodeURIComponent(kw)}`;
+                            }
+                          }, 100);
+                        } catch (err) {
+                          console.error('[MainpageTop] navigate 오류 (제안):', err);
+                          window.location.href = `/violations?search=${encodeURIComponent(kw)}`;
+                        }
                       }}
                     >
                       <span className="suggest-main">{it.ve_number || 'Vehicle'}</span>
@@ -229,6 +280,7 @@ const MainpageTop = ({ showParkingControls = false }) => {
         )}
       </div>
       <div className="top-bar-widgets">
+
         <div className='today'>
           {formatNow(now)}
         </div>

@@ -234,9 +234,86 @@ async function getViolationsByHour(req, res, next) {
   }
 }
 
+// Stats: by weekday
+async function getViolationsByWeekday(req, res, next) {
+  try {
+    const { date, from, to } = req.query || {};
+    const range = buildRange({ date, from, to });
+    if ((date || from || to) && !range) {
+      return res.status(400).json({
+        error: {
+          code: 'BAD_REQUEST',
+          message: 'Invalid date/from/to format. Use YYYY-MM-DD or YYYY-MM-DD HH:mm:ss',
+          params: { date, from, to },
+        },
+      });
+    }
+    const parkingIdx = parseParkingIdx(req);
+
+    if (range || parkingIdx !== null) {
+      const where = [];
+      const params = [];
+      if (range) {
+        where.push('v.created_at >= ? AND v.created_at <= ?');
+        params.push(range.start, range.end);
+      }
+      let join = '';
+      if (parkingIdx !== null) {
+        join = 'JOIN tb_detection d ON d.ve_detection_idx = v.ve_detection_idx';
+        where.push('d.parking_idx = ?');
+        params.push(parkingIdx);
+      }
+      const rows = await db.query(
+        `SELECT 
+           CASE DAYOFWEEK(v.created_at)
+             WHEN 1 THEN '일요일'
+             WHEN 2 THEN '월요일'
+             WHEN 3 THEN '화요일'
+             WHEN 4 THEN '수요일'
+             WHEN 5 THEN '목요일'
+             WHEN 6 THEN '금요일'
+             WHEN 7 THEN '토요일'
+           END AS weekday,
+           DAYOFWEEK(v.created_at) AS dayIndex,
+           COUNT(*) AS count
+         FROM tb_violation v
+         ${join}
+         WHERE ${where.join(' AND ')}
+         GROUP BY DAYOFWEEK(v.created_at), weekday
+         ORDER BY dayIndex`,
+        params
+      );
+      res.json(rows);
+    } else {
+      const rows = await db.query(
+        `SELECT 
+           CASE DAYOFWEEK(v.created_at)
+             WHEN 1 THEN '일요일'
+             WHEN 2 THEN '월요일'
+             WHEN 3 THEN '화요일'
+             WHEN 4 THEN '수요일'
+             WHEN 5 THEN '목요일'
+             WHEN 6 THEN '금요일'
+             WHEN 7 THEN '토요일'
+           END AS weekday,
+           DAYOFWEEK(v.created_at) AS dayIndex,
+           COUNT(*) AS count
+         FROM tb_violation v
+         GROUP BY DAYOFWEEK(v.created_at), weekday
+         ORDER BY dayIndex`
+      );
+      res.json(rows);
+    }
+  } catch (err) {
+    console.error(`Error while getting violation stats by weekday`, err.message);
+    next(err);
+  }
+}
+
 module.exports = {
   getViolationsByType,
   getViolationsByDate,
   getViolationsByLocation,
   getViolationsByHour,
+  getViolationsByWeekday,
 };

@@ -60,7 +60,7 @@ const Sidebar = () => {
   }, []);
 
   return (
-    <div className="Sidebar_box box-style">
+    <div className="Sidebar_box box-style" id="sidebar">
       <Link to="/violations" style={{ textDecoration: 'none', color: 'inherit' }}>
         <SidebarItem icon={Xcarbell} text="위반차량" count={violationsCount} />
       </Link>

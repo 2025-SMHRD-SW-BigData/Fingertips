@@ -277,12 +277,59 @@ export const getStatsByHour = (params = {}) => {
   const idx = params.parking_idx ?? params.parkingIdx ?? getSelectedParkingIdx();
   return request(`/stats/by-hour${qp({ ...params, parking_idx: idx })}`);
 };
+export const getStatsByWeekday = (params = {}) => {
+  const idx = params.parking_idx ?? params.parkingIdx ?? getSelectedParkingIdx();
+  return request(`/stats/by-weekday${qp({ ...params, parking_idx: idx })}`);
+};
 
 // Parking summary per lot (ALL or by parking_idx)
 export const getParkingSummaryByLot = (params = {}) => {
   const idx = params.parking_idx ?? params.parkingIdx ?? getSelectedParkingIdx();
   const q = idx ? `?parking_idx=${encodeURIComponent(idx)}` : '';
   return request(`/dashboard/summary-by-parking${q}`);
+};
+
+// Export functions
+export const exportStatsCSV = (params = {}) => {
+  const idx = params.parking_idx ?? params.parkingIdx ?? getSelectedParkingIdx();
+  const qp = new URLSearchParams();
+  Object.entries(params).forEach(([key, val]) => {
+    if (val !== undefined && val !== null && val !== '') {
+      qp.set(key, String(val));
+    }
+  });
+  if (idx) qp.set('parking_idx', String(idx));
+  const queryString = qp.toString();
+  const url = `${BASE_URL}/export/csv${queryString ? `?${queryString}` : ''}`;
+  
+  // Create a temporary link to trigger download
+  const link = document.createElement('a');
+  link.href = url;
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+export const exportStatsExcel = (params = {}) => {
+  const idx = params.parking_idx ?? params.parkingIdx ?? getSelectedParkingIdx();
+  const qp = new URLSearchParams();
+  Object.entries(params).forEach(([key, val]) => {
+    if (val !== undefined && val !== null && val !== '') {
+      qp.set(key, String(val));
+    }
+  });
+  if (idx) qp.set('parking_idx', String(idx));
+  const queryString = qp.toString();
+  const url = `${BASE_URL}/export/excel${queryString ? `?${queryString}` : ''}`;
+  
+  // Create a temporary link to trigger download
+  const link = document.createElement('a');
+  link.href = url;
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };
 
 export default {
@@ -307,6 +354,9 @@ export default {
   getStatsByDate,
   getStatsByLocation,
   getStatsByHour,
+  getStatsByWeekday,
   getParkingSummaryByLot,
   changePassword,
+  exportStatsCSV,
+  exportStatsExcel,
 };

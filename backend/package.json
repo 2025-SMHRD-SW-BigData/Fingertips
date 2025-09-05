@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "exceljs": "^4.4.0",
     "argon2": "^0.44.0",
     "aws-sdk": "^2.1692.0",
     "cors": "^2.8.5",
