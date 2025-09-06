@@ -4,6 +4,7 @@ import '../style/CCTVpage.css';
 import Sidebar from './Sidebar';
 import MainpageTop from './MainpageTop';
 import Logo from './Logo';
+import SidebarLayout from '../ui/SidebarLayout';
 import ParkingControls from './ParkingControls';
 
 // 주차장 데이터 (이름 기반)
@@ -143,14 +144,14 @@ const CCTVManagement = () => {
 };
 
 const CCTVpage = () => (
-    <div className="Mainpage_box">
+    <SidebarLayout className="Mainpage_box">
         <div className="page-layout-simple">
             <Logo />
             <MainpageTop />
             <Sidebar />
             <CCTVManagement />
         </div>
-    </div>
+    </SidebarLayout>
 );
 
 export default CCTVpage;

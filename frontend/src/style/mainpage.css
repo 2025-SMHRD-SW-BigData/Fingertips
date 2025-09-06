@@ -870,8 +870,131 @@
   .status { padding: 3px 8px; font-size: 11px; }
   .action-btn { padding: 4px 8px; font-size: 12px; }
   .modal-card { width: 95vw; }
-.vio.box-style {
-  /* Match Main_inout (box-style) background explicitly */
-  background-color: var(--bg-surface) !important;
+  .vio.box-style {
+    /* Match Main_inout (box-style) background explicitly */
+    background-color: var(--bg-surface) !important;
+  }
 }
+
+/* ===========================
+   Responsive Sidebar Rules
+=========================== */
+
+/* Sidebar hiding when in compact mode - HIGHEST PRIORITY */
+.Mainpage_box.sidebar-compact .Sidebar_box,
+.Mainpage_box.sidebar-compact #sidebar,
+.Mainpage_box.sidebar-hidden .Sidebar_box,
+.Mainpage_box.sidebar-hidden #sidebar,
+div.Mainpage_box.sidebar-compact .Sidebar_box,
+div.Mainpage_box.sidebar-compact #sidebar,
+div.Mainpage_box.sidebar-hidden .Sidebar_box,
+div.Mainpage_box.sidebar-hidden #sidebar { 
+  display: none !important; 
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* Only show sidebar in compact mode when explicitly opened */
+.Mainpage_box.sidebar-compact:not(.sidebar-hidden) .Sidebar_box,
+.Mainpage_box.sidebar-compact:not(.sidebar-hidden) #sidebar,
+div.Mainpage_box.sidebar-compact:not(.sidebar-hidden) .Sidebar_box,
+div.Mainpage_box.sidebar-compact:not(.sidebar-hidden) #sidebar {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Compact mode: single column layout */
+.sidebar-compact .page-layout-simple {
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "logo"
+    "topbar"
+    "content";
+}
+
+.sidebar-compact .page-layout {
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "logo"
+    "topbar"
+    "stats"
+    "map"
+    "bottom";
+}
+
+/* 컴팩트 모드에서 로고 영역 조정 - 햄버거 버튼과 겹치지 않게 */
+.sidebar-compact .Mainpage_logo {
+  margin-left: 0 !important;
+  padding-left: 70px !important; /* 햄버거 버튼 공간 확보 */
+}
+
+/* 컴팩트 모드가 아닐 때는 패딩 제거 */
+.Mainpage_box:not(.sidebar-compact) .Mainpage_logo {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+}
+
+/* Drawer overlay for compact mode */
+.sidebar-compact:not(.sidebar-hidden) #sidebar {
+  position: fixed; 
+  left: 12px; 
+  top: 12px; 
+  bottom: 12px;
+  width: min(80vw, 280px);
+  z-index: 2000; 
+  background: var(--bg-surface);
+  border: 1px solid var(--border); 
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+
+.sidebar-overlay {
+  position: fixed; 
+  inset: 0; 
+  background: rgba(0, 0, 0, 0.35); 
+  z-index: 1990;
+}
+
+/* Hamburger button - 왼쪽 위 고정 위치 */
+.hamburger-btn {
+  position: fixed !important;
+  top: 20px !important;
+  left: 20px !important;
+  z-index: 9999 !important;
+  width: 40px !important;
+  height: 40px !important;
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-body) !important;
+  border-radius: 8px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 18px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.2s ease !important;
+}
+
+.hamburger-btn:hover {
+  background-color: var(--bg-surface-2);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.hamburger-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 햄버거 버튼 내부 아이콘 스타일 */
+.hamburger-btn svg {
+  transition: all 0.2s ease;
+}
+
+.hamburger-btn:hover svg {
+  transform: scale(1.1);
 }

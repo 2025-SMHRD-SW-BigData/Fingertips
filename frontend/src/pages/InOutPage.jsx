@@ -3,8 +3,10 @@ import { getParkingLogs } from '../services/api';
 import Sidebar from '../component/Sidebar';
 import MainpageTop from '../component/MainpageTop';
 import Logo from '../component/Logo';
+import SidebarLayout from '../ui/SidebarLayout';
 import ParkingControls from '../component/ParkingControls';
 import LogDetailsModal from '../component/LogDetailsModal'; // Import modal
+import { useNavigate } from 'react-router-dom';
 import '../style/mainpage.css';
 
 const formatTime = (iso) => {
@@ -24,6 +26,7 @@ const InOutPage = () => {
   const [rows, setRows] = useState([]);
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedLog, setSelectedLog] = useState(null);
+  const navigate = useNavigate();
 
   const handleOpenModal = (log) => {
     setSelectedLog(log);
@@ -55,7 +58,7 @@ const InOutPage = () => {
   }, []);
 
   return (
-    <div className="Mainpage_box">
+    <SidebarLayout className="Mainpage_box">
       <div className="page-layout-simple">
         <Logo />
         <MainpageTop />
@@ -103,6 +106,36 @@ const InOutPage = () => {
               )}
             </tbody>
           </table>
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px', paddingBottom: '20px' }}>
+            <button 
+              onClick={() => navigate('/dashboard')}
+              style={{ 
+                padding: '10px 24px',
+                fontSize: '14px',
+                backgroundColor: '#3b82f6',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: '500',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)',
+                minWidth: '150px'
+              }}
+              onMouseOver={(e) => {
+                e.target.style.backgroundColor = '#2563eb';
+                e.target.style.transform = 'translateY(-1px)';
+                e.target.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.4)';
+              }}
+              onMouseOut={(e) => {
+                e.target.style.backgroundColor = '#3b82f6';
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 2px 8px rgba(59, 130, 246, 0.3)';
+              }}
+            >
+              대시보드로 돌아가기
+            </button>
+          </div>
         </div>
       </div>
       <LogDetailsModal
@@ -110,7 +143,7 @@ const InOutPage = () => {
         onClose={handleCloseModal}
         log={selectedLog}
       />
-    </div>
+    </SidebarLayout>
   );
 };
 

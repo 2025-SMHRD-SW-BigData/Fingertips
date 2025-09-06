@@ -5,6 +5,7 @@ import '../style/MyPage.css';
 import Sidebar from '../component/Sidebar';
 import MainpageTop from '../component/MainpageTop';
 import Logo from '../component/Logo';
+import SidebarLayout from '../ui/SidebarLayout';
 import ChangePasswordModal from '../component/ChangePasswordModal';
 import { getAdminMe } from '../services/api';
 
@@ -78,7 +79,7 @@ const MyPage = () => {
         const lastLogin = me?.last_logged_at || '';
         const lastCctv = getOrInitCctvLastVisit();
         setActivity([
-          { id: 'login', action: '최근 로그인' , timestamp: formatTS(lastLogin) },
+          { id: 'login', action: '최근 로그인', timestamp: formatTS(lastLogin) },
           { id: 'cctv', action: 'CCTV 페이지 방문', timestamp: formatTS(lastCctv) },
         ]);
       })
@@ -86,7 +87,7 @@ const MyPage = () => {
   }, []);
 
   return (
-    <div className="Mainpage_box">
+    <SidebarLayout className="Mainpage_box">
       <div className="page-layout-simple">
         <Logo />
         <MainpageTop />
@@ -154,7 +155,7 @@ const MyPage = () => {
               <div className="activity-section notif-settings" >
                 <h2>알림 설정</h2>
                 <div className="setting-item">
-                  <label>실시간 위반 알림</label>
+                  <label>실시간 알림</label>
                   <label className="switch">
                     <input
                       type="checkbox"
@@ -222,7 +223,7 @@ const MyPage = () => {
           <ChangePasswordModal isOpen={showPwdModal} onClose={() => setShowPwdModal(false)} />
         </div>
       </div>
-    </div>
+    </SidebarLayout>
   );
 };
 

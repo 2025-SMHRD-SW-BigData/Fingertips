@@ -17,7 +17,15 @@ const getStored = () => {
 };
 
 export default function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(() => getStored() || getSystem());
+  const [theme, setTheme] = useState(() => {
+    const stored = getStored();
+    // 만약 라이트모드로 설정되어 있다면 다크모드로 강제 변경
+    if (stored === 'light') {
+      try { localStorage.setItem('theme', 'dark'); } catch (_) {}
+      return 'dark';
+    }
+    return stored || 'dark'; // 기본값은 다크모드
+  });
 
   useEffect(() => {
     try { localStorage.setItem('theme', theme); } catch (_) {}

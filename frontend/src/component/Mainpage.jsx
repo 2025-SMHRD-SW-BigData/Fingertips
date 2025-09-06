@@ -7,10 +7,11 @@ import Logo from './Logo'
 import MainpageMap from './MainpageMap'
 import Mainpage_vio from './Mainpage_vio'
 import Main_inout from './Main_inout'
+import SidebarLayout from '../ui/SidebarLayout'
 
 const Mainpage = () => {
   return (
-    <div className="Mainpage_box">
+    <SidebarLayout className="Mainpage_box">
       <div className="page-layout">
         <Logo></Logo>
         <MainpageTop showParkingControls />
@@ -23,7 +24,7 @@ const Mainpage = () => {
             <Main_inout />
           </div>
       </div>
-    </div>
+    </SidebarLayout>
   )
 }
 

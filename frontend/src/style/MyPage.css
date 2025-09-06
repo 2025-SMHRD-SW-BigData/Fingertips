@@ -80,7 +80,7 @@
 .change-password-cta { display: none; }
 
 /* Simple modal styles (shared) */
-.modal-backdrop {
+.change-pwd-modal.modal-backdrop {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
@@ -89,7 +89,7 @@
   justify-content: center;
   z-index: 1000;
 }
-.modal-panel {
+.change-pwd-modal .modal-panel {
   width: 100%;
   max-width: 420px;
   background: var(--bg-surface);
@@ -97,32 +97,32 @@
   border-radius: 10px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.4);
 }
-.modal-header {
+.change-pwd-modal .modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
   border-bottom: 1px solid var(--border);
 }
-.modal-close {
+.change-pwd-modal .modal-close {
   background: transparent;
   border: none;
   color: var(--text-body);
   font-size: 20px;
   cursor: pointer;
 }
-.modal-body {
+.change-pwd-modal .modal-body {
   display: flex;
   flex-direction: column;
   gap: 15px;
   padding: 20px;
 }
 
-.input-group {
+.change-pwd-modal .input-group {
   position: relative;
 }
 
-.input-icon {
+.change-pwd-modal .input-icon {
   position: absolute;
   left: 12px;
   top: 50%;
@@ -130,7 +130,7 @@
   color: var(--text-muted);
 }
 
-.modal-body input {
+.change-pwd-modal .modal-body input {
   padding: 12px 40px 12px 40px;
   border-radius: 8px;
   border: 1px solid var(--border);
@@ -140,7 +140,7 @@
   font-size: 16px;
 }
 
-.password-toggle {
+.change-pwd-modal .password-toggle {
   position: absolute;
   right: 12px;
   top: 50%;
@@ -151,14 +151,14 @@
   cursor: pointer;
 }
 
-.modal-actions {
+.change-pwd-modal .modal-actions {
   display: flex;
   gap: 10px;
   justify-content: flex-end;
   margin-top: 15px;
 }
 
-.modal-actions button {
+.change-pwd-modal .modal-actions button {
   padding: 12px 20px;
   border-radius: 8px;
   border: none;
@@ -167,25 +167,25 @@
   font-weight: bold;
 }
 
-.cancel-btn {
+.change-pwd-modal .cancel-btn {
   background: var(--bg-surface-2);
   color: var(--text-body);
   border: 1px solid var(--border);
 }
 
-.submit-btn {
+.change-pwd-modal .submit-btn {
   background: var(--accent-blue);
   color: #fff;
 }
 
-.modal-error {
+.change-pwd-modal .modal-error {
   background: rgba(239, 68, 68, 0.18);
   color: var(--danger);
   padding: 10px;
   border-radius: 8px;
 }
 
-.modal-success {
+.change-pwd-modal .modal-success {
   background: rgba(16, 185, 129, 0.18);
   color: var(--accent-green);
   padding: 10px;

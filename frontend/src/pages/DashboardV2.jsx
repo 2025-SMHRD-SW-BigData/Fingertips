@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import '../style/mainpage.css';
 import '../style/dashboard.css';
 import Sidebar from '../component/Sidebar';
@@ -8,10 +8,11 @@ import MapWidget from '../component/MapWidget';
 import Main_inout from '../component/Main_inout';
 import Mainpage_vio from '../component/Mainpage_vio';
 import StatisticsBox from '../component/StatisticsBox';
+import SidebarLayout from '../ui/SidebarLayout';
 
 export default function DashboardV2() {
   return (
-    <div className="Mainpage_box">
+    <SidebarLayout className="Mainpage_box">
       <div className="page-layout-simple">
         <Logo />
         <MainpageTop showParkingControls />
@@ -41,6 +42,6 @@ export default function DashboardV2() {
           </section>
         </div>
       </div>
-    </div>
+    </SidebarLayout>
   );
 }

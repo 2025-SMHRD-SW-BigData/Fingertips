@@ -5,6 +5,7 @@ import '../style/StatisticsPage.css';
 import Sidebar from '../component/Sidebar';
 import MainpageTop from '../component/MainpageTop';
 import Logo from '../component/Logo';
+import SidebarLayout from '../ui/SidebarLayout';
 import { getStatsByType, getStatsByDate, getStatsByHour, getStatsByWeekday, exportStatsCSV, exportStatsExcel } from '../services/api';
 import ParkingControls from '../component/ParkingControls';
 
@@ -419,7 +420,7 @@ const StatisticsPage = () => {
   );
 
   return (
-    <div className="Mainpage_box">
+    <SidebarLayout className="Mainpage_box">
       <div className="page-layout-simple">
         <Logo />
         <MainpageTop />
@@ -995,7 +996,7 @@ const StatisticsPage = () => {
         </div>
       </div>
 
-    </div>
+    </SidebarLayout>
   );
 };
 

@@ -39,7 +39,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
     setError('');
     setSuccess('');
     if (!form.current || !form.next || !form.confirm) {
-      setError('모든 항목을 입력해주세요.');
+      setError('모든 필드를 입력해주세요.');
       return;
     }
     if (form.next !== form.confirm) {
@@ -70,7 +70,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Change password">
+    <div className="modal-backdrop change-pwd-modal" role="dialog" aria-modal="true" aria-label="Change password">
       <div className="modal-panel">
         <div className="modal-header">
           <h3>비밀번호 변경</h3>
@@ -79,7 +79,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
         <form onSubmit={onSubmit} className="modal-body">
           {error && <div className="modal-error">{error}</div>}
           {success && <div className="modal-success">{success}</div>}
-          
+
           <div className="input-group">
             <FiUser className="input-icon" />
             <input

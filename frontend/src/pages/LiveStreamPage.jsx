@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Logo from '../component/Logo';
 import MainpageTop from '../component/MainpageTop';
 import Sidebar from '../component/Sidebar';
+import SidebarLayout from '../ui/SidebarLayout';
 import '../style/LiveStreamPage.css';
 
 const LiveStreamPage = () => {
@@ -90,7 +91,7 @@ const LiveStreamPage = () => {
   }, [modalOpen]);
 
   return (
-    <div className="Mainpage_box">
+    <SidebarLayout className="Mainpage_box">
       <div className="page-layout-simple">
         <Logo />
         <MainpageTop />
@@ -144,7 +145,7 @@ const LiveStreamPage = () => {
           )}
         </div>
       </div>
-    </div>
+    </SidebarLayout>
   );
 };
 

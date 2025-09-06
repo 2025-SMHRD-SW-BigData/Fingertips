@@ -4,6 +4,7 @@ import '../style/mainpage.css';
 import Sidebar from '../component/Sidebar';
 import MainpageTop from '../component/MainpageTop';
 import Logo from '../component/Logo';
+import SidebarLayout from '../ui/SidebarLayout';
 import ParkingControls from '../component/ParkingControls';
 import { getViolations, updateViolation, markAlertsReadByViolation, broadcastViolation } from '../services/api';
 
@@ -263,7 +264,7 @@ const ViolationPage = () => {
   };
 
   return (
-    <div className="Mainpage_box">
+    <SidebarLayout className="Mainpage_box">
       <div className="page-layout-simple">
         <Logo />
         <MainpageTop />
@@ -355,7 +356,7 @@ const ViolationPage = () => {
           error={modalError}
         />
       </div>
-    </div>
+    </SidebarLayout>
   );
 };
 

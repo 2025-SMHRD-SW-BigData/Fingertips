@@ -7,6 +7,7 @@ import graf from '../assets/graf.png';
 import mypage from '../assets/mypage.png';
 import setting from '../assets/setting.png';
 import { getUnreadAlerts, getViolationsTotal } from '../services/api';
+import { useSidebarUI } from '../ui/SidebarUIContext';
 
 import { Link, useLocation } from 'react-router-dom';
 
@@ -20,8 +21,16 @@ const SidebarItem = ({ icon, text, count }) => (
 
 const Sidebar = () => {
   useLocation();
+  const ui = useSidebarUI();
   const [unreadCount, setUnreadCount] = useState(0);
   const [violationsCount, setViolationsCount] = useState(0);
+
+  // 컴팩트 모드에서 숨김 상태일 때 인라인 스타일로 강제 숨김
+  const forceHideStyle = ui?.isCompact && !ui?.isOpen ? { 
+    display: 'none',
+    visibility: 'hidden',
+    opacity: 0 
+  } : {};
 
   useEffect(() => {
     const adminId = localStorage.getItem('admin_id');
@@ -59,8 +68,19 @@ const Sidebar = () => {
     };
   }, []);
 
+  console.log('Sidebar render:', { 
+    isCompact: ui?.isCompact, 
+    isOpen: ui?.isOpen, 
+    shouldHide: ui?.isCompact && !ui?.isOpen,
+    forceHideStyle 
+  });
+
   return (
-    <div className="Sidebar_box box-style" id="sidebar">
+    <div 
+      className="Sidebar_box box-style" 
+      id="sidebar"
+      style={forceHideStyle}
+    >
       <Link to="/violations" style={{ textDecoration: 'none', color: 'inherit' }}>
         <SidebarItem icon={Xcarbell} text="위반차량" count={violationsCount} />
       </Link>

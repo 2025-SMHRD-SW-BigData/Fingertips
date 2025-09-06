@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ThemeProvider from './theme/ThemeProvider';
+import { SidebarUIProvider } from './ui/SidebarUIContext';
 import './style/theme.css';
 import Login from './pages/Login';
 import MainPage from './component/Mainpage';
@@ -35,7 +36,8 @@ export default function App() {
   }, []);
   return (
     <ThemeProvider>
-      <Routes>
+      <SidebarUIProvider>
+        <Routes>
         {/* 기본 진입은 대시보드로 */}
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
@@ -130,6 +132,7 @@ export default function App() {
           }
         />
       </Routes>
+      </SidebarUIProvider>
     </ThemeProvider>
   );
 }
