@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ThemeProvider from './theme/ThemeProvider';
 import './style/theme.css';
@@ -16,16 +16,28 @@ import LiveStreamPage from './pages/LiveStreamPage';
 import DashboardV2 from './pages/DashboardV2';
 
 function ProtectedRoute({ children }) {
-  const token = localStorage.getItem('token');
-  return token ? children : <Navigate to="/login" replace />;
+  const hasToken = (() => {
+    try { return !!localStorage.getItem('token'); } catch (_) { return false; }
+  })();
+  const hasSession = (() => {
+    try { return sessionStorage.getItem('session') === '1'; } catch (_) { return false; }
+  })();
+  return (hasToken || hasSession) ? children : <Navigate to="/login" replace />;
 }
 
 export default function App() {
+  // One-time migration: remove legacy placeholder token
+  useEffect(() => {
+    try {
+      const t = localStorage.getItem('token');
+      if (t === 'session') localStorage.removeItem('token');
+    } catch (_) {}
+  }, []);
   return (
     <ThemeProvider>
       <Routes>
         {/* 기본 진입은 대시보드로 */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/admin/signup" element={<AdminSignup />} />
         <Route path="/cctv" element={<CCTVpage />} />
@@ -121,4 +133,3 @@ export default function App() {
     </ThemeProvider>
   );
 }
-

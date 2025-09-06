@@ -26,11 +26,14 @@ export default function Login() {
     try {
       const result = await loginApi(form);
       const token = result?.token || result?.access_token || result?.accessToken || result?.jwt || result?.data?.token;
+      // Clear previous markers
+      try { localStorage.removeItem('token'); } catch(_) {}
+      try { sessionStorage.removeItem('session'); } catch(_) {}
       if (token) {
         localStorage.setItem('token', token);
       } else {
-        // Backend does not return a token; mark session locally so ProtectedRoute passes
-        localStorage.setItem('token', 'session');
+        // If backend uses cookie session, use a non-persistent session flag
+        try { sessionStorage.setItem('session', '1'); } catch(_) {}
       }
       if (result?.adminName) localStorage.setItem('adminName', result.adminName);
       if (result?.admin_id) localStorage.setItem('admin_id', result.admin_id);

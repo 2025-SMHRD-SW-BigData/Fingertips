@@ -159,6 +159,7 @@ const MainpageTop = ({ showParkingControls = false }) => {
       localStorage.removeItem('adminName');
       localStorage.removeItem('admin_id');
       localStorage.removeItem('role');
+      try { sessionStorage.removeItem('session'); } catch (_) {}
     } catch (e) {
       // ignore storage errors
     }

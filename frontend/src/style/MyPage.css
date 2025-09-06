@@ -1,8 +1,20 @@
 /* MyPage.css */
 .mypage-content {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
+}
+
+/* Flatten settings wrapper so its children become regular grid items */
+.settings-grid { display: contents; }
+
+/* Ensure all cards align to grid width */
+.mypage-content > * { width: 100%; }
+
+/* Keep settings columns steady height; allow inner scroll when toggled */
+.settings-grid .activity-section {
+  height: clamp(240px, 35vh, 320px);
+  overflow-y: auto;
 }
 
 .profile-section,
@@ -178,4 +190,87 @@
   color: var(--accent-green);
   padding: 10px;
   border-radius: 8px;
+}
+
+/* Settings form elements */
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-item label {
+  color: var(--text-body);
+}
+
+/* Toggle Switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--border);
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: var(--bg-surface);
+  transition: .4s;
+}
+
+input:checked + .slider { 
+  background-color: var(--accent-blue); 
+}
+
+input:focus + .slider { 
+  box-shadow: 0 0 1px var(--accent-blue); 
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+/* Input and Select Styles for settings */
+.setting-item select,
+.setting-item input[type="time"] {
+  background-color: var(--bg-surface);
+  color: var(--text-body);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 10px;
 }

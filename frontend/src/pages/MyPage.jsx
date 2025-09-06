@@ -20,6 +20,31 @@ const MyPage = () => {
   const handlePasswordChange = () => {};
   const handlePasswordSubmit = (e) => { e.preventDefault(); };
 
+  // Settings state
+  const [notificationSettings, setNotificationSettings] = useState({
+    realtimeAlerts: true,
+    dailyReports: false,
+    reportTime: '09:00',
+  });
+
+  const [cctvSettings, setCctvSettings] = useState({
+    retentionPeriod: '15',
+    motionSensitivity: 'medium',
+  });
+
+  const handleNotificationChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setNotificationSettings((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+  };
+
+  const handleCctvChange = (e) => {
+    const { name, value } = e.target;
+    setCctvSettings((prev) => ({ ...prev, [name]: value }));
+  };
+
   const formatTS = (iso) => {
     if (!iso) return '-';
     try { return new Date(iso).toLocaleString(); } catch { return '-'; }
@@ -53,7 +78,7 @@ const MyPage = () => {
         const lastLogin = me?.last_logged_at || '';
         const lastCctv = getOrInitCctvLastVisit();
         setActivity([
-          { id: 'login', action: '최근 로그인', timestamp: formatTS(lastLogin) },
+          { id: 'login', action: '최근 로그인' , timestamp: formatTS(lastLogin) },
           { id: 'cctv', action: 'CCTV 페이지 방문', timestamp: formatTS(lastCctv) },
         ]);
       })
@@ -123,6 +148,76 @@ const MyPage = () => {
                 )}
               </ul>
             </div>
+
+            {/* Settings sections merged from SettingsPage */}
+            <div className="settings-grid">
+              <div className="activity-section notif-settings" >
+                <h2>알림 설정</h2>
+                <div className="setting-item">
+                  <label>실시간 위반 알림</label>
+                  <label className="switch">
+                    <input
+                      type="checkbox"
+                      name="realtimeAlerts"
+                      checked={notificationSettings.realtimeAlerts}
+                      onChange={handleNotificationChange}
+                    />
+                    <span className="slider round"></span>
+                  </label>
+                </div>
+                <div className="setting-item">
+                  <label>매일 리포트 수신</label>
+                  <label className="switch">
+                    <input
+                      type="checkbox"
+                      name="dailyReports"
+                      checked={notificationSettings.dailyReports}
+                      onChange={handleNotificationChange}
+                    />
+                    <span className="slider round"></span>
+                  </label>
+                </div>
+                {notificationSettings.dailyReports && (
+                  <div className="setting-item">
+                    <label>리포트 수신 시간</label>
+                    <input
+                      type="time"
+                      name="reportTime"
+                      value={notificationSettings.reportTime}
+                      onChange={handleNotificationChange}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="activity-section cctv-settings" >
+                <h2>CCTV 설정</h2>
+                <div className="setting-item">
+                  <label>영상 보관 기간</label>
+                  <select
+                    name="retentionPeriod"
+                    value={cctvSettings.retentionPeriod}
+                    onChange={handleCctvChange}
+                  >
+                    <option value="7">7일</option>
+                    <option value="15">15일</option>
+                    <option value="30">30일</option>
+                  </select>
+                </div>
+                <div className="setting-item">
+                  <label>움직임 감지 민감도</label>
+                  <select
+                    name="motionSensitivity"
+                    value={cctvSettings.motionSensitivity}
+                    onChange={handleCctvChange}
+                  >
+                    <option value="low">낮음</option>
+                    <option value="medium">중간</option>
+                    <option value="high">높음</option>
+                  </select>
+                </div>
+              </div>
+            </div>
           </div>
           <ChangePasswordModal isOpen={showPwdModal} onClose={() => setShowPwdModal(false)} />
         </div>
@@ -132,4 +227,5 @@ const MyPage = () => {
 };
 
 export default MyPage;
+
 

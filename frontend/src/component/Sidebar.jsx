@@ -80,9 +80,6 @@ const Sidebar = () => {
       <Link to="/mypage" style={{ textDecoration: 'none', color: 'inherit' }}>
         <SidebarItem icon={mypage} text="마이 페이지" />
       </Link>
-      <Link to="/settings" style={{ textDecoration: 'none', color: 'inherit' }}>
-        <SidebarItem icon={setting} text="설정" />
-      </Link>
     </div>
   );
 };

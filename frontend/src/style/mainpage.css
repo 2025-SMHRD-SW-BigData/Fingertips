@@ -91,6 +91,7 @@
 .Sidebar_box {
   /* Inherits .box-style */
   gap: 20px;
+  height: calc(54vh - 40px); /* Fixed height based on viewport minus main container padding */
 }
 
 .side_sbox {
