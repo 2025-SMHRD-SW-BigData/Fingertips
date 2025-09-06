@@ -5,7 +5,7 @@ import '../style/StatisticsPage.css';
 import Sidebar from '../component/Sidebar';
 import MainpageTop from '../component/MainpageTop';
 import Logo from '../component/Logo';
-import { getStatsByType, getStatsByDate, getStatsByLocation, getStatsByHour, getStatsByWeekday, exportStatsCSV, exportStatsExcel } from '../services/api';
+import { getStatsByType, getStatsByDate, getStatsByHour, getStatsByWeekday, exportStatsCSV, exportStatsExcel } from '../services/api';
 import ParkingControls from '../component/ParkingControls';
 
 const StatisticsPage = () => {
@@ -20,30 +20,77 @@ const StatisticsPage = () => {
   const [byType, setByType] = useState({ data: [], loading: true, error: null });
   const [byDate, setByDate] = useState({ data: [], loading: true, error: null });
   const [byHour, setByHour] = useState({ data: [], loading: false, error: null });
-  const [byLocation, setByLocation] = useState({ data: [], loading: true, error: null });
   const [byWeekday, setByWeekday] = useState({ data: [], loading: true, error: null });
   const [parkingIdx, setParkingIdx] = useState(() => (typeof localStorage !== 'undefined' ? (localStorage.getItem('parking_idx') || '') : ''));
   const [ttType, setTtType] = useState({ visible: false, x: 0, y: 0, content: null, pinned: false });
   const [ttDate, setTtDate] = useState({ visible: false, x: 0, y: 0, content: null, pinned: false });
-  const [ttLoc, setTtLoc] = useState({ visible: false, x: 0, y: 0, content: null, pinned: false });
   const [ttWeekday, setTtWeekday] = useState({ visible: false, x: 0, y: 0, content: null, pinned: false });
   const [granularity, setGranularity] = useState('day');
   const [chartRange, setChartRange] = useState({ from: '', to: '' });
   const [typeChartMode, setTypeChartMode] = useState('bar'); // 'bar' or 'pie'
+  const [csvDropdownVisible, setCsvDropdownVisible] = useState(false);
+  const [csvExportOptions, setCsvExportOptions] = useState({
+    'by-type': true,
+    'by-date': true,
+    'by-weekday': true
+  });
+  const [csvDownloading, setCsvDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0 });
   const navigate = useNavigate();
 
   // Export handlers
-  const handleExportCSV = () => {
+  const handleCsvOptionChange = (option) => {
+    setCsvExportOptions(prev => ({
+      ...prev,
+      [option]: !prev[option]
+    }));
+  };
+
+  const handleCsvExportConfirm = async () => {
+    const selectedTypes = Object.keys(csvExportOptions).filter(key => csvExportOptions[key]);
+    
+    if (selectedTypes.length === 0) {
+      alert('최소 하나의 항목을 선택해주세요.');
+      return;
+    }
+
+    setCsvDownloading(true);
+    setDownloadProgress({ current: 0, total: selectedTypes.length });
+
     const exportParams = {};
     if (filters.from) exportParams.from = filters.from;
     if (filters.to) exportParams.to = filters.to;
-    exportStatsCSV(exportParams);
+    if (parkingIdx) exportParams.parking_idx = parkingIdx;
+
+    try {
+      // 선택된 각 타입별로 CSV 다운로드 (지연을 두어 순차 실행)
+      for (let i = 0; i < selectedTypes.length; i++) {
+        const type = selectedTypes[i];
+        setDownloadProgress({ current: i + 1, total: selectedTypes.length });
+        
+        const params = { ...exportParams, type };
+        exportStatsCSV(params);
+        
+        // 마지막 다운로드가 아니라면 500ms 지연
+        if (i < selectedTypes.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+    } catch (error) {
+      console.error('CSV 다운로드 오류:', error);
+      alert('다운로드 중 오류가 발생했습니다.');
+    } finally {
+      setCsvDownloading(false);
+      setCsvDropdownVisible(false);
+      setDownloadProgress({ current: 0, total: 0 });
+    }
   };
 
   const handleExportExcel = () => {
     const exportParams = {};
     if (filters.from) exportParams.from = filters.from;
     if (filters.to) exportParams.to = filters.to;
+    if (parkingIdx) exportParams.parking_idx = parkingIdx;
     exportStatsExcel(exportParams);
   };
 
@@ -120,21 +167,8 @@ const StatisticsPage = () => {
 
     // Type: handled by a separate effect using chartRange so it matches date chart window
 
-    // Location: only load when ALL (no parking_idx selected)
-    if (!parkingIdx) {
-      setByLocation((s) => ({ ...s, loading: true, error: null }));
-      getStatsByLocation(params)
-        .then((rows) => {
-          if (!alive) return;
-          setByLocation({ data: Array.isArray(rows) ? rows : [], loading: false, error: null });
-        })
-        .catch((err) => alive && setByLocation({ data: [], loading: false, error: err.message || 'Failed to load' }));
-    } else {
-      setByLocation({ data: [], loading: false, error: null });
-    }
 
     // Time series, filtered by date range/group if provided
-    setByHour({ data: [], loading: false, error: null });
     setByDate((s) => ({ ...s, loading: true, error: null }));
     getStatsByDate({ ...params, group: granularity })
       .then((rows) => {
@@ -142,6 +176,19 @@ const StatisticsPage = () => {
         setByDate({ data: Array.isArray(rows) ? rows : [], loading: false, error: null });
       })
       .catch((err) => alive && setByDate({ data: [], loading: false, error: err.message || 'Failed to load' }));
+
+    // Fetch hourly data when a specific date is selected
+    if (date) {
+      setByHour({ data: [], loading: true, error: null });
+      getStatsByHour({ date })
+        .then((rows) => {
+          if (!alive) return;
+          setByHour({ data: Array.isArray(rows) ? rows : [], loading: false, error: null });
+        })
+        .catch((err) => alive && setByHour({ data: [], loading: false, error: err.message || 'Failed to load' }));
+    } else {
+      setByHour({ data: [], loading: false, error: null });
+    }
 
     // Weekday stats
     setByWeekday((s) => ({ ...s, loading: true, error: null }));
@@ -248,6 +295,18 @@ const StatisticsPage = () => {
     return () => window.removeEventListener('parking-change', handler);
   }, []);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (csvDropdownVisible && !event.target.closest('.csv-export-dropdown')) {
+        setCsvDropdownVisible(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [csvDropdownVisible]);
+
   // Normalize datasets for charts
   const typeChart = useMemo(() => {
     const rows = byType.data;
@@ -349,13 +408,6 @@ const StatisticsPage = () => {
     return out;
   }, [byHour.data, filters.date]);
 
-  const locationChart = useMemo(() => {
-    const rows = byLocation.data;
-    if (!rows?.length) return [];
-    const labelKey = pickKeys(rows[0], ['location', 'parking_loc', 'PARKING_LOC', 'camera_loc']);
-    const valueKey = pickKeys(rows[0], ['cnt', 'count', 'total', 'value']);
-    return rows.map((r) => ({ label: String(r[labelKey]), value: Number(r[valueKey] ?? 0) }));
-  }, [byLocation.data]);
 
   const maxVal = (arr) => Math.max(1, ...arr.map((d) => d.value || 0));
   const sumVal = (arr) => arr.reduce((s, v) => s + (v.value || 0), 0);
@@ -383,11 +435,113 @@ const StatisticsPage = () => {
           <div className="statistics-content">
             
             <div className="filters">
-              <label style={{ marginRight: 8 }}>From:</label>
-              <input type="date" name="from" value={filters.from} onChange={handleFilterChange} />
-              <label style={{ margin: '0 8px' }}>To:</label>
-              <input type="date" name="to" value={filters.to} onChange={handleFilterChange} />
-
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                <label style={{ marginRight: 8 }}>From:</label>
+                <input type="date" name="from" value={filters.from} onChange={handleFilterChange} />
+                <label style={{ margin: '0 8px' }}>To:</label>
+                <input type="date" name="to" value={filters.to} onChange={handleFilterChange} />
+                
+                <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+                  <div className="csv-export-dropdown">
+                    <button 
+                      type="button" 
+                      onClick={() => setCsvDropdownVisible(!csvDropdownVisible)}
+                      className="export-button"
+                      title="CSV 파일로 내보내기"
+                      style={{
+                        padding: '6px 12px',
+                        backgroundColor: '#10b981',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}
+                    >
+                      📊 CSV 내보내기 ▼
+                    </button>
+                    {csvDropdownVisible && (
+                      <div className="csv-export-menu">
+                        <div className="csv-export-option">
+                          <input
+                            type="checkbox"
+                            id="csv-by-type"
+                            checked={csvExportOptions['by-type']}
+                            onChange={() => handleCsvOptionChange('by-type')}
+                          />
+                          <label htmlFor="csv-by-type">위반 유형별 통계</label>
+                        </div>
+                        <div className="csv-export-option">
+                          <input
+                            type="checkbox"
+                            id="csv-by-date"
+                            checked={csvExportOptions['by-date']}
+                            onChange={() => handleCsvOptionChange('by-date')}
+                          />
+                          <label htmlFor="csv-by-date">날짜별 통계</label>
+                        </div>
+                        <div className="csv-export-option">
+                          <input
+                            type="checkbox"
+                            id="csv-by-weekday"
+                            checked={csvExportOptions['by-weekday']}
+                            onChange={() => handleCsvOptionChange('by-weekday')}
+                          />
+                          <label htmlFor="csv-by-weekday">요일별 통계</label>
+                        </div>
+                        {csvDownloading && (
+                          <div className="csv-download-progress">
+                            <div className="progress-text">
+                              다운로드 중... ({downloadProgress.current}/{downloadProgress.total})
+                            </div>
+                            <div className="progress-bar">
+                              <div 
+                                className="progress-fill" 
+                                style={{ 
+                                  width: `${(downloadProgress.current / downloadProgress.total) * 100}%` 
+                                }}
+                              ></div>
+                            </div>
+                          </div>
+                        )}
+                        <div className="csv-export-actions">
+                          <button
+                            type="button"
+                            className="csv-export-confirm"
+                            onClick={handleCsvExportConfirm}
+                            disabled={csvDownloading}
+                          >
+                            {csvDownloading ? '다운로드 중...' : '확인'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <button 
+                    type="button" 
+                    onClick={handleExportExcel}
+                    className="export-button"
+                    title="Excel 파일로 내보내기"
+                    style={{
+                      padding: '6px 12px',
+                      backgroundColor: '#3b82f6',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    📈 Excel 내보내기
+                  </button>
+                </div>
+              </div>
             </div>
             <div className="charts">
               <div
@@ -405,17 +559,21 @@ const StatisticsPage = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                   <h2>위반 유형별</h2>
                   <div className="chart-toggle" role="group" aria-label="Chart type">
-                    <button 
-                      type="button" 
-                      className={typeChartMode === 'bar' ? 'toggle active' : 'toggle'} 
+                    <button
+                      type="button"
+                      className={typeChartMode === 'bar' ? 'toggle active' : 'toggle'}
+                      aria-pressed={typeChartMode === 'bar'}
                       onClick={() => setTypeChartMode('bar')}
+                      title="막대 차트"
                     >
                       막대
                     </button>
-                    <button 
-                      type="button" 
-                      className={typeChartMode === 'pie' ? 'toggle active' : 'toggle'} 
+                    <button
+                      type="button"
+                      className={typeChartMode === 'pie' ? 'toggle active' : 'toggle'}
+                      aria-pressed={typeChartMode === 'pie'}
                       onClick={() => setTypeChartMode('pie')}
+                      title="파이 차트"
                     >
                       파이
                     </button>
@@ -575,139 +733,32 @@ const StatisticsPage = () => {
                 )}
                 <Tooltip visible={ttType.visible} x={ttType.x} y={ttType.y}>{ttType.content}</Tooltip>
               </div>
-              <div
-                className="chart"
-                style={{ display: parkingIdx ? 'none' : undefined }}
-                onMouseMove={(e) => {
-                  if (!ttLoc.visible) return;
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  setTtLoc((s) => ({ ...s, x: e.clientX - rect.left, y: e.clientY - rect.top }));
-                }}
-                onClick={(e) => {
-                  if (e.target.tagName && e.target.tagName.toLowerCase() === 'path') return;
-                  setTtLoc({ visible: false, x: 0, y: 0, content: null, pinned: false });
-                }}
-              >
-                <h2>장소별</h2>
-                {byLocation.loading ? (
-                  <div>Loading...</div>
-                ) : byLocation.error ? (
-                  <div>Error: {byLocation.error}</div>
-                ) : locationChart.length === 0 ? (
-                  <div>No data.</div>
-                ) : (
-                  <>
-                    <div className="simple-pie-chart">
-                      {(() => {
-                        const total = sumVal(locationChart) || 1;
-                        const colors = ['#3182ce', '#e53e3e', '#38a169', '#dd6b20', '#805ad5', '#2b6cb0', '#d53f8c']; // 색상 순서 조정 (불법주차-파랑)
-                        let cumulativePercent = 0;
-                        
-                        const gradientStops = locationChart.map((d, i) => {
-                          const percent = (d.value / total) * 100;
-                          const startPercent = cumulativePercent;
-                          const endPercent = cumulativePercent + percent;
-                          cumulativePercent = endPercent;
-                          return `${colors[i % colors.length]} ${startPercent}% ${endPercent}%`;
-                        }).join(', ');
-                        
-                        
-                        return (
-                          <div 
-                            className="pie-circle" 
-                            style={{ background: `conic-gradient(${gradientStops})` }}
-                            onClick={(e) => {
-                              // Calculate which segment was clicked based on mouse position
-                              const rect = e.currentTarget.getBoundingClientRect();
-                              const centerX = rect.width / 2;
-                              const centerY = rect.height / 2;
-                              const x = e.clientX - rect.left - centerX;
-                              const y = e.clientY - rect.top - centerY;
-                              let angle = Math.atan2(y, x) * (180 / Math.PI);
-                              if (angle < 0) angle += 360;
-                              angle = (angle + 90) % 360; // Adjust for conic-gradient starting at top
-                              
-                              let cumulative = 0;
-                              for (let i = 0; i < locationChart.length; i++) {
-                                const percent = (locationChart[i].value / total) * 100;
-                                if (angle >= cumulative && angle < cumulative + percent) {
-                                  const d = locationChart[i];
-                                  if (d.value === 0) return;
-                                  
-                                  // Navigate to violations page filtered by location
-                                  const qs = new URLSearchParams();
-                                  if (filters.from) qs.set('from', filters.from);
-                                  if (filters.to) qs.set('to', filters.to);
-                                  if (d.label) qs.set('search', d.label);
-                                  qs.set('hl', 'location');
-                                  const url = `/violations?${qs.toString()}`;
-                                  console.log(`[StatisticsPage] 위치별 차트 클릭 - ${d.label} (${d.value}건)`);
-                                  navigate(url);
-                                  break;
-                                }
-                                cumulative += percent;
-                              }
-                            }}
-                            onMouseMove={(e) => {
-                              const rect = e.currentTarget.getBoundingClientRect();
-                              const centerX = rect.width / 2;
-                              const centerY = rect.height / 2;
-                              const x = e.clientX - rect.left - centerX;
-                              const y = e.clientY - rect.top - centerY;
-                              let angle = Math.atan2(y, x) * (180 / Math.PI);
-                              if (angle < 0) angle += 360;
-                              angle = (angle + 90) % 360;
-                              
-                              let cumulative = 0;
-                              for (let i = 0; i < locationChart.length; i++) {
-                                const percent = (locationChart[i].value / total) * 100;
-                                if (angle >= cumulative && angle < cumulative + percent) {
-                                  const d = locationChart[i];
-                                  setTtLoc({
-                                    visible: true,
-                                    x: e.clientX - e.currentTarget.closest('.chart').getBoundingClientRect().left,
-                                    y: e.clientY - e.currentTarget.closest('.chart').getBoundingClientRect().top,
-                                    content: (
-                                      <div>
-                                        <div><strong>{d.label}</strong></div>
-                                        <div>건수: {d.value.toLocaleString()}</div>
-                                        <div>비율: {Math.round((d.value / total) * 100)}%</div>
-                                      </div>
-                                    ),
-                                    pinned: false,
-                                  });
-                                  break;
-                                }
-                                cumulative += percent;
-                              }
-                            }}
-                            onMouseLeave={() => setTtLoc((s) => (s.pinned ? s : { ...s, visible: false }))}
-                          >
-                            <div className="pie-center">
-                              <div className="pie-total">{total}</div>
-                              <div className="pie-label">총 건수</div>
-                            </div>
-                          </div>
-                        );
-                      })()}
-                    </div>
-                    <div className="legend">
-                      {locationChart.map((d, i) => {
-                        const colors = ['#3182ce', '#e53e3e', '#38a169', '#dd6b20', '#805ad5', '#2b6cb0', '#d53f8c'];
-                        return (
-                          <div className="legend-item" key={i}>
-                            <span className="legend-color" style={{ backgroundColor: colors[i % colors.length] }} />
-                            <span>{d.label}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </>
-                )}
-                <Tooltip visible={ttLoc.visible} x={ttLoc.x} y={ttLoc.y}>{ttLoc.content}</Tooltip>
-              </div>
               <div className="chart">
-                <h2>{granularity === 'day' ? '일별' : granularity === 'week' ? '주별' : '월별'}</h2>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                  <h2>
+                    {filters.date 
+                      ? `선택된 날짜: ${filters.date}` 
+                      : (granularity === 'day' ? '일별' : granularity === 'week' ? '주별' : '월별')
+                    }
+                  </h2>
+                  {filters.date && (
+                    <button 
+                      type="button" 
+                      className="toggle" 
+                      onClick={() => {
+                        setFilters(prev => ({
+                          ...prev,
+                          date: '',
+                          from: prev.from || '',
+                          to: prev.to || new Date().toISOString().slice(0, 10)
+                        }));
+                      }}
+                      style={{ fontSize: '12px', padding: '4px 8px' }}
+                    >
+                      ← 범위 보기로 돌아가기
+                    </button>
+                  )}
+                </div>
                 {(() => {
                   const loading = byDate.loading;
                   const error = byDate.error;
@@ -765,24 +816,43 @@ const StatisticsPage = () => {
                             onClick={(e) => {
                               e.stopPropagation();
                               if (d.value === 0) return; // 0건인 점은 클릭 무시
-                              // Navigate to violations filtered by the selected time bucket
-                              const qs = new URLSearchParams();
+                              
                               if (granularity === 'day' && d.meta?.date) {
+                                // For day granularity, update the filters to show only this day
+                                // This will trigger the hourly chart and filter the search results
+                                setFilters(prev => ({
+                                  ...prev,
+                                  date: d.meta.date,
+                                  from: '',
+                                  to: ''
+                                }));
+                                
+                                // Also navigate to violations page with the selected date
+                                const qs = new URLSearchParams();
                                 qs.set('date', d.meta.date);
                                 qs.set('hl', 'date');
-                              } else if (granularity === 'week' && d.meta?.from && d.meta?.to) {
-                                qs.set('from', d.meta.from);
-                                qs.set('to', d.meta.to);
-                                qs.set('hl', 'range');
-                              } else if (granularity === 'month' && d.meta?.from && d.meta?.to) {
-                                qs.set('from', d.meta.from);
-                                qs.set('to', d.meta.to);
-                                qs.set('hl', 'range');
+                                const url = `/violations?${qs.toString()}`;
+                                console.log('[StatisticsPage] 일별 차트 클릭 - 선택된 날짜:', d.meta.date);
+                                console.log('[StatisticsPage] 이동 URL:', url);
+                                navigate(url);
+                              } else {
+                                // For week/month granularity, navigate to violations filtered by the selected time bucket
+                                const qs = new URLSearchParams();
+                                if (granularity === 'week' && d.meta?.from && d.meta?.to) {
+                                  qs.set('from', d.meta.from);
+                                  qs.set('to', d.meta.to);
+                                  qs.set('hl', 'range');
+                                } else if (granularity === 'month' && d.meta?.from && d.meta?.to) {
+                                  qs.set('from', d.meta.from);
+                                  qs.set('to', d.meta.to);
+                                  qs.set('hl', 'range');
+                                }
+                                const url = `/violations?${qs.toString()}`;
+                                console.log('[StatisticsPage] 차트 클릭 - 시간대:', granularity, d.meta);
+                                console.log('[StatisticsPage] 이동 URL:', url);
+                                navigate(url);
                               }
-                              const url = `/violations?${qs.toString()}`;
-                              console.log('[StatisticsPage] 차트 클릭 - 시간대:', granularity, d.meta);
-                              console.log('[StatisticsPage] 이동 URL:', url);
-                              navigate(url);
+                              
                               setTtDate((s) => ({ ...s, pinned: !s.pinned, visible: true }));
                             }}
                       />
@@ -868,43 +938,8 @@ const StatisticsPage = () => {
                         e.stopPropagation();
                         if (d.count === 0) return;
                         
-                        // Navigate to violations page filtered by specific days matching this weekday
-                        const qs = new URLSearchParams();
-                        
-                        // Calculate specific dates that match this weekday within the selected range
-                        const weekdayMap = {
-                          '일요일': 0, '월요일': 1, '화요일': 2, '수요일': 3,
-                          '목요일': 4, '금요일': 5, '토요일': 6
-                        };
-                        
-                        const targetWeekday = weekdayMap[d.weekday];
-                        if (targetWeekday !== undefined) {
-                          // Find all dates in the range that match this weekday
-                          const fromDate = filters.from ? new Date(filters.from) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-                          const toDate = filters.to ? new Date(filters.to) : new Date();
-                          
-                          const matchingDates = [];
-                          const currentDate = new Date(fromDate);
-                          
-                          while (currentDate <= toDate) {
-                            if (currentDate.getDay() === targetWeekday) {
-                              matchingDates.push(currentDate.toISOString().slice(0, 10));
-                            }
-                            currentDate.setDate(currentDate.getDate() + 1);
-                          }
-                          
-                          // If we have matching dates, filter by them using weekday parameter
-                          if (matchingDates.length > 0) {
-                            qs.set('weekday', d.weekday);
-                            if (filters.from) qs.set('from', filters.from);
-                            if (filters.to) qs.set('to', filters.to);
-                          }
-                        }
-                        
-                        qs.set('hl', 'weekday');
-                        const url = `/violations?${qs.toString()}`;
-                        console.log(`[StatisticsPage] 요일별 차트 클릭 - ${d.weekday} (${d.count}건)`);
-                        navigate(url);
+                        // 요일별 차트는 클릭해도 리다이렉트하지 않음
+                        // 대신 툴팁만 고정/해제
                         setTtWeekday((s) => ({ ...s, pinned: !s.pinned, visible: true }));
                       }}
                     >
@@ -959,6 +994,7 @@ const StatisticsPage = () => {
           </div>
         </div>
       </div>
+
     </div>
   );
 };

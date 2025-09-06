@@ -269,6 +269,11 @@ tbody td {
   padding: 8px;
 }
 
+/* Align Main_inout table with parking icon (middle stat box) */
+.map-inout-container .inout-section .inout {
+  margin-left: 10.5%; /* Approximate alignment with middle stat box */
+}
+
 /* Prevent zoom-reset overexpansion: cap map stage height inside dashboard */
 .map-inout-container .map-section .svg-stage {
   min-height: 200px;
@@ -332,5 +337,13 @@ tbody td {
   .map-inout-container .map-section {
     border-right: none;
     border-bottom: 1px solid var(--border);
+  }
+  
+  .map-inout-container .inout-section {
+    padding-left: 8px; /* Reset to normal padding on mobile */
+  }
+  
+  .map-inout-container .inout-section .inout {
+    margin-left: 0; /* Reset alignment on mobile */
   }
 }

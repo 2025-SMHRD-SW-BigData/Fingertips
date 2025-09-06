@@ -19,6 +19,106 @@
   color: var(--text-body);
 }
 
+.export-button {
+  font-weight: 500;
+  text-decoration: none;
+  border: none;
+  outline: none;
+}
+
+/* CSV Export Dropdown */
+.csv-export-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.csv-export-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 220px;
+  padding: 12px;
+}
+
+.csv-export-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+}
+
+.csv-export-option input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #10b981;
+}
+
+.csv-export-option label {
+  color: var(--text-body);
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+  flex: 1;
+}
+
+.csv-export-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.csv-export-confirm {
+  padding: 6px 12px;
+  background-color: #10b981;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.csv-export-confirm:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.csv-download-progress {
+  margin: 8px 0;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+.progress-text {
+  color: var(--text-body);
+  font-size: 12px;
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 4px;
+  background-color: var(--bg-surface);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #10b981;
+  transition: width 0.3s ease;
+  border-radius: 2px;
+}
+
 .charts {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -30,6 +130,8 @@
   padding: 20px;
   border-radius: 10px;
   position: relative; /* for tooltip positioning */
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border);
 }
 
 .chart h2 {
@@ -51,8 +153,14 @@
   stroke-width: 2;
 }
 .line-point circle {
-  fill: var(--danger);
+  fill: var(--accent-blue);
+  stroke: var(--bg-surface);
+  stroke-width: 2;
   cursor: pointer;
+}
+
+.line-point circle:hover {
+  fill: var(--danger);
 }
 
 .bar-chart {
@@ -66,7 +174,7 @@
 }
 
 .bar {
-  background-color: var(--border);
+  background: linear-gradient(to top, var(--accent-blue), #63B3ED);
   width: 50px;
   display: flex;
   justify-content: center;
@@ -74,6 +182,7 @@
   color: var(--text-body);
   position: relative;
   cursor: pointer;
+  border-radius: 4px 4px 0 0;
 }
 
 .bar span {
@@ -145,13 +254,15 @@
   background: var(--bg-surface);
   color: var(--text-body);
   border: 1px solid var(--border);
-  padding: 6px 8px;
-  border-radius: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
   font-size: 12px;
   pointer-events: none;
-  transform: translate(8px, 8px);
+  transform: translate(8px, calc(-100% - 8px));
   max-width: 240px;
   white-space: nowrap;
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(10px);
 }
 
 /* Granularity toggle */
@@ -169,6 +280,38 @@
   background: var(--accent-blue);
   border-color: var(--accent-blue);
   color: #fff;
+}
+
+/* Chart type toggle (bar/pie) */
+.chart-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 4px;
+}
+.chart-toggle .toggle {
+  background: transparent;
+  color: var(--text-body);
+  border: 0;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.chart-toggle .toggle:hover { background: var(--bg-surface-2); }
+.chart-toggle .toggle.active {
+  background: var(--accent-blue);
+  color: #fff;
+}
+.chart-toggle .toggle.active:hover { background: var(--accent-blue); }
+.chart-toggle .toggle:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 1px;
 }
 
 /* Weekend bars styling */
@@ -202,7 +345,7 @@
 }
 
 .pie-center {
-  background: var(--bg-surface);
+  background: var(--bg-body);
   width: 80px;
   height: 80px;
   border-radius: 50%;
@@ -211,6 +354,7 @@
   align-items: center;
   justify-content: center;
   border: 2px solid var(--border);
+  box-shadow: var(--shadow-sm);
 }
 
 .pie-total {

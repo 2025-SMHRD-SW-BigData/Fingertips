@@ -21,7 +21,17 @@ router.get('/', async (req, res, next) => {
     const from = (req.query.from || '').trim();
     const to = (req.query.to || '').trim();
     const vtype = (req.query.type || '').trim();
-    const weekday = (req.query.weekday || '').trim();
+    let weekday = (req.query.weekday || '').trim();
+    
+    // Express가 자동으로 디코딩하지 않는 경우를 위한 수동 디코딩
+    if (weekday && weekday.includes('%')) {
+      try {
+        weekday = decodeURIComponent(weekday);
+      } catch (e) {
+        // 디코딩 실패 시 원본 사용
+      }
+    }
+    
     const parkingIdx = parseInt(req.query.parking_idx, 10);
 
     const where = [];

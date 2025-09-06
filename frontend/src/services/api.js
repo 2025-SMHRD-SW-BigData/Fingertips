@@ -211,6 +211,7 @@ export const getViolations = async ({
   page = 1,
   limit = 10,
   sort,
+  date,
   from,
   to,
   keyword,
@@ -221,7 +222,7 @@ export const getViolations = async ({
 } = {}) => {
   const idx = parkingIdx ?? getSelectedParkingIdx();
   // Map keyword -> search for backend compatibility
-  const query = buildQuery({ page, limit, sort, from, to, search: search ?? keyword, type, status, parking_idx: idx });
+  const query = buildQuery({ page, limit, sort, date, from, to, search: search ?? keyword, type, status, parking_idx: idx });
   const raw = await request(`/violations${query}`);
   return normalizeViolationsListResponse(raw, { page, limit });
 };

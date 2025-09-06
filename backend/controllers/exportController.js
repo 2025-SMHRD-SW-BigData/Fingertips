@@ -29,6 +29,20 @@ function parseParkingIdx(req) {
   return Number.isFinite(n) ? n : null;
 }
 
+async function getParkingLoc(parkingIdx) {
+  if (!parkingIdx) return null;
+  try {
+    const rows = await db.query(
+      'SELECT PARKING_LOC FROM tb_parking WHERE PARKING_IDX = ?',
+      [parkingIdx]
+    );
+    return rows.length > 0 ? rows[0].PARKING_LOC : null;
+  } catch (err) {
+    console.error('Error getting parking location:', err);
+    return null;
+  }
+}
+
 // Export statistics data as CSV
 async function exportStatsCSV(req, res, next) {
   try {
@@ -71,9 +85,11 @@ async function exportStatsCSV(req, res, next) {
 
     const now = new Date();
     const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+    const parkingLoc = await getParkingLoc(parkingIdx);
+    const parkingPrefix = parkingLoc ? `${parkingLoc}_` : '';
     
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}_${dateStr}.csv"`);
+    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(parkingPrefix)}${encodeURIComponent(filename)}_${dateStr}.csv`);
     res.send('\ufeff' + csvContent); // BOM for proper Korean encoding
   } catch (err) {
     console.error('Error exporting CSV:', err.message);
@@ -91,7 +107,6 @@ async function exportStatsExcel(req, res, next) {
     // Get all data types
     const byType = await getViolationsByTypeData(range, parkingIdx);
     const byDate = await getViolationsByDateData(range, parkingIdx, 'day');
-    const byLocation = await getViolationsByLocationData(range, parkingIdx);
     const byWeekday = await getViolationsByWeekdayData(range, parkingIdx);
 
     // Create workbook with ExcelJS
@@ -122,7 +137,6 @@ async function exportStatsExcel(req, res, next) {
 
     addSheet('위반유형별', byType);
     addSheet('날짜별', byDate);
-    addSheet('위치별', byLocation);
     addSheet('요일별', byWeekday);
 
     // Generate Excel buffer
@@ -130,9 +144,11 @@ async function exportStatsExcel(req, res, next) {
 
     const now = new Date();
     const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+    const parkingLoc = await getParkingLoc(parkingIdx);
+    const parkingPrefix = parkingLoc ? `${parkingLoc}_` : '';
     
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename="위반통계_${dateStr}.xlsx"`);
+    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(parkingPrefix)}${encodeURIComponent('위반통계')}_${dateStr}.xlsx`);
     res.send(Buffer.from(buffer));
   } catch (err) {
     console.error('Error exporting Excel:', err.message);
@@ -253,7 +269,7 @@ async function getViolationsByWeekdayData(range, parkingIdx) {
 
   return await db.query(
     `SELECT 
-       CASE DAYOFWEEK(v.created_at)
+       CASE MAX(DAYOFWEEK(v.created_at))
          WHEN 1 THEN '일요일'
          WHEN 2 THEN '월요일'
          WHEN 3 THEN '화요일'

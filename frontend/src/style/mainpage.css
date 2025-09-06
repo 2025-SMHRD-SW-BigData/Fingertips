@@ -54,6 +54,7 @@
   flex-direction: column;
   overflow-y: auto; 
   border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
 }
 
 .content-area h1 {
@@ -66,7 +67,7 @@
   color: var(--text-body);
   border-radius: 20px;
   border: 1px solid var(--border);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-card);
   padding: 20px;
   box-sizing: border-box;
   display: flex;
@@ -457,6 +458,32 @@
   border-top: 1px solid #3b4457;
 }
 
+/* Glitch.md guidance: let the container own the border + radius */
+.vio { overflow: hidden; }
+
+.vio .header {
+  margin-bottom: 0; /* make header join the table */
+  border: none; /* remove all borders on header (no horizontal divider) */
+  border-radius: 0; /* corners handled by container */
+  padding: 12px;
+  background-color: transparent; /* container provides background */
+}
+
+.vio .data-table {
+  border: none; /* no borders on table itself */
+  border-radius: 0; /* corners handled by container */
+  background-color: transparent; /* container provides background */
+}
+.vio .data-table th { border-bottom: none; }
+.vio .data-table td { border-top: none; }
+.vio .data-table th,
+.vio .data-table td {
+  background-color: transparent; /* inherit table background */
+}
+.vio .data-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
 .status {
   padding: 5px 12px;
   border-radius: 12px;
@@ -842,4 +869,8 @@
   .status { padding: 3px 8px; font-size: 11px; }
   .action-btn { padding: 4px 8px; font-size: 12px; }
   .modal-card { width: 95vw; }
+.vio.box-style {
+  /* Match Main_inout (box-style) background explicitly */
+  background-color: var(--bg-surface) !important;
+}
 }

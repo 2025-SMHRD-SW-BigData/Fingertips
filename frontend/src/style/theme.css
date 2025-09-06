@@ -18,12 +18,12 @@
 }
 
 .theme-light {
-  --bg-body: #eef2f6; /* dimmer than pure white to reduce glare */
-  --bg-surface: #ffffff;
-  --bg-surface-2: #f5f7fb; /* subtle contrast card */
-  --text-body: #111827; /* gray-900 */
-  --text-muted: #6b7280; /* gray-500 */
-  --border: #d1d5db; /* gray-300 */
+  --bg-body: #f8f6f1; /* warm beige background to reduce eye strain */
+  --bg-surface: #fffdf8; /* cream white instead of pure white */
+  --bg-surface-2: #f5f2ea; /* light beige for subtle contrast */
+  --text-body: #2d2b26; /* dark brown for better contrast */
+  --text-muted: #6b665c; /* medium brown for secondary text */
+  --border: #e8e3d8; /* soft beige border instead of harsh gray */
   --focus: #2563eb;
   --accent-blue: #3b82f6;
   --accent-green: #10b981;
@@ -32,6 +32,10 @@
   --slot-occupied: rgba(239, 68, 68, 0.75);
   --slot-general-free: rgba(59, 130, 246, 0.55);
   --slot-disabled-free: rgba(16, 185, 129, 0.55);
+  /* Shadow system for depth */
+  --shadow-card: 0 1px 3px 0 rgba(16, 24, 40, 0.05), 0 1px 2px 0 rgba(16, 24, 40, 0.06);
+  --shadow-sm: 0 1px 2px 0 rgba(16, 24, 40, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(16, 24, 40, 0.08);
 }
 
 /* Overlay stroke color for slots */

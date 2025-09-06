@@ -5,6 +5,7 @@ import p2_img_url from '../assets/p2.png';
 import p1_csv_url from '../assets/p1.csv?url';
 import p2_csv_url from '../assets/p2.csv?url';
 import { getParkingStatus } from '../services/api';
+import { subscribe as subscribeOverrides, getOverride as getOverrideFor, toggle as toggleOverride } from '../store/parkingOverrides';
 
 // Authoritative map viewBoxes
 const viewBoxes = {
@@ -45,6 +46,13 @@ const MainpageMap = ({ parking_idx, maxWidth }) => {
     };
     try { window.addEventListener('parking-change', onChange); } catch (_) {}
     return () => { try { window.removeEventListener('parking-change', onChange); } catch (_) {} };
+  }, []);
+
+  // Re-render when overrides change
+  const [ovVersion, setOvVersion] = useState(0);
+  useEffect(() => {
+    const unsub = subscribeOverrides(() => setOvVersion((v) => v + 1));
+    return () => { try { unsub && unsub(); } catch (_) {} };
   }, []);
 
   // Pick assets by odd/even
@@ -125,7 +133,7 @@ const MainpageMap = ({ parking_idx, maxWidth }) => {
       ...g,
       occupied: statusMap.get(String(g.id)) === true,
     }));
-  }, [geoList, statusMap]);
+  }, [geoList, statusMap, ovVersion]);
 
   const containerStyle = useMemo(() => {
     const defaultClamp = 'clamp(520px, 60vw, 900px)';
@@ -189,12 +197,15 @@ const MainpageMap = ({ parking_idx, maxWidth }) => {
         )}
         <svg
           className="slot-overlay-svg"
+          style={{ pointerEvents: 'auto' }}
           viewBox={`0 0 ${viewBox.width} ${viewBox.height}`}
           preserveAspectRatio="xMidYMid meet"
           aria-label="Parking slots overlay"
         >
           <g className="slots">
             {mergedSlots.map((s) => {
+              const override = getOverrideFor(effectiveIdx, s.id);
+              const effectiveOccupied = typeof override === 'boolean' ? override : s.occupied;
               return (
                 <rect
                   key={s.id}
@@ -202,13 +213,19 @@ const MainpageMap = ({ parking_idx, maxWidth }) => {
                   y={s.y}
                   width={s.width}
                   height={s.height}
-                  className={`slot ${s.type || 'general'} ${s.occupied ? 'occupied' : 'free'}`}
+                  className={`slot ${s.type || 'general'} ${effectiveOccupied ? 'occupied' : 'free'}`}
                   stroke="rgba(255,255,255,0.85)"
                   strokeWidth={1}
                   rx={4}
                   ry={4}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const currentEff = effectiveOccupied;
+                    toggleOverride({ parkingIdx: effectiveIdx, id: s.id, currentEffective: currentEff });
+                    try { window.dispatchEvent(new Event('parking-change')); } catch (_) {}
+                  }}
                 >
-                  <title>{`${s.id}: ${s.type} - ${s.occupied ? 'occupied' : 'available'}`}</title>
+                  <title>{`${s.id}: ${s.type} - ${effectiveOccupied ? 'occupied' : 'available'}`}</title>
                 </rect>
               );
             })}
