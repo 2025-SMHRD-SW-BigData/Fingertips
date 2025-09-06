@@ -1,5 +1,6 @@
 const express = require('express');
 const db = require('../services/db');
+const dashboardController = require('../controllers/dashboardController');
 
 const router = express.Router();
 
@@ -103,30 +104,7 @@ router.get('/recent-violations', async (req, res, next) => {
 });
 
 // GET /api/dashboard/parking-logs (latest 5)
-router.get('/parking-logs', async (req, res, next) => {
-  try {
-    const parkingIdx = parseInt(req.query.parking_idx, 10);
-    const hasFilter = Number.isFinite(parkingIdx);
-    const rows = await db.query(
-      hasFilter
-        ? `SELECT pl.log_idx, pl.ve_number, pl.space_id, pl.entry_at, pl.exit_at
-             FROM tb_parking_log pl
-             JOIN tb_parking_space ps ON ps.space_id = pl.space_id
-            WHERE ps.parking_idx = ?
-            ORDER BY pl.entry_at DESC
-            LIMIT 5`
-        : `SELECT log_idx, ve_number, space_id, entry_at, exit_at
-             FROM tb_parking_log
-            ORDER BY entry_at DESC
-            LIMIT 5`,
-      hasFilter ? [parkingIdx] : []
-    );
-    res.json(rows);
-  } catch (err) {
-    console.error('Error in /dashboard/parking-logs', err);
-    next(err);
-  }
-});
+router.get('/parking-logs', dashboardController.getParkingLogs);
 
 // GET /api/dashboard/summary-by-parking
 router.get('/summary-by-parking', async (req, res, next) => {
@@ -180,4 +158,3 @@ router.get('/summary-by-parking', async (req, res, next) => {
 });
 
 module.exports = router;
- 

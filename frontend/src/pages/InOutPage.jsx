@@ -4,6 +4,7 @@ import Sidebar from '../component/Sidebar';
 import MainpageTop from '../component/MainpageTop';
 import Logo from '../component/Logo';
 import ParkingControls from '../component/ParkingControls';
+import LogDetailsModal from '../component/LogDetailsModal'; // Import modal
 import '../style/mainpage.css';
 
 const formatTime = (iso) => {
@@ -21,12 +22,25 @@ const formatTime = (iso) => {
 
 const InOutPage = () => {
   const [rows, setRows] = useState([]);
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [selectedLog, setSelectedLog] = useState(null);
+
+  const handleOpenModal = (log) => {
+    setSelectedLog(log);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedLog(null);
+  };
 
   useEffect(() => {
     let mounted = true;
     const load = () => {
       getParkingLogs()
         .then((data) => {
+          console.log('Parking logs data:', data); // Log the data
           if (mounted) setRows(Array.isArray(data) ? data : []);
         })
         .catch((err) => console.error('Failed to load parking logs', err));
@@ -78,7 +92,7 @@ const InOutPage = () => {
                   <td>{formatTime(row.entry_at)}</td>
                   <td>{formatTime(row.exit_at)}</td>
                   <td>
-                    <button className="action-btn">보기</button>
+                    <button className="action-btn" onClick={() => handleOpenModal(row)}>보기</button>
                   </td>
                 </tr>
               ))}
@@ -91,6 +105,11 @@ const InOutPage = () => {
           </table>
         </div>
       </div>
+      <LogDetailsModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        log={selectedLog}
+      />
     </div>
   );
 };
