@@ -262,6 +262,22 @@ const qp = (params = {}) => {
   return s ? `?${s}` : '';
 };
 
+// Paginated parking logs list (server-side pagination)
+export const listParkingLogs = async ({
+  page = 1,
+  limit = 10,
+  search,
+  from,
+  to,
+  sort,
+  parkingIdx,
+} = {}) => {
+  const idx = parkingIdx ?? getSelectedParkingIdx();
+  const query = buildQuery({ page, limit, search, from, to, sort, parking_idx: idx });
+  const raw = await request(`/parking-logs${query}`);
+  return normalizeViolationsListResponse(raw, { page, limit });
+};
+
 export const getStatsByType = (params = {}) => {
   const idx = params.parking_idx ?? params.parkingIdx ?? getSelectedParkingIdx();
   return request(`/stats/by-type${qp({ ...params, parking_idx: idx })}`);
@@ -341,6 +357,7 @@ export default {
   getParkingStatus,
   getRecentViolations,
   getParkingLogs,
+  listParkingLogs,
   getParkings,
   getParkingsByDistrict,
   getUnreadAlerts,

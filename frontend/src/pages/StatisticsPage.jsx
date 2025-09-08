@@ -314,7 +314,11 @@ const StatisticsPage = () => {
     if (!rows?.length) return [];
     const labelKey = pickKeys(rows[0], ['violation_type', 'type']);
     const valueKey = pickKeys(rows[0], ['cnt', 'count', 'total', 'value']);
-    return rows.map((r) => ({ label: String(r[labelKey]), value: Number(r[valueKey] ?? 0) }));
+    
+    return rows.map((r) => ({ 
+      label: String(r[labelKey]),
+      value: Number(r[valueKey] ?? 0) 
+    }));
   }, [byType.data]);
 
   const dateChart = useMemo(() => {

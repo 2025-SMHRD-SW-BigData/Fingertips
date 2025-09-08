@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getParkingLogs } from '../services/api';
+import { listParkingLogs } from '../services/api';
 import Sidebar from '../component/Sidebar';
 import MainpageTop from '../component/MainpageTop';
 import Logo from '../component/Logo';
@@ -24,6 +24,9 @@ const formatTime = (iso) => {
 
 const InOutPage = () => {
   const [rows, setRows] = useState([]);
+  const [page, setPage] = useState(1);
+  const pageSize = 5; // page size for server pagination
+  const [pageMeta, setPageMeta] = useState({ totalItems: 0, pageSize: 5, currentPage: 1, totalPages: 1 });
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedLog, setSelectedLog] = useState(null);
   const navigate = useNavigate();
@@ -40,22 +43,67 @@ const InOutPage = () => {
 
   useEffect(() => {
     let mounted = true;
-    const load = () => {
-      getParkingLogs()
-        .then((data) => {
-          console.log('Parking logs data:', data); // Log the data
-          if (mounted) setRows(Array.isArray(data) ? data : []);
-        })
-        .catch((err) => console.error('Failed to load parking logs', err));
+    const load = async (targetPage = page) => {
+      try {
+        const { items, pagination } = await listParkingLogs({ page: targetPage, limit: pageSize });
+        if (!mounted) return;
+        setRows(Array.isArray(items) ? items : []);
+        if (pagination) setPageMeta(pagination);
+
+        // Auto-correct page if out of range
+        if (items.length === 0 && targetPage > 1 && pagination && pagination.totalItems > 0) {
+          const actualTotalPages = Math.max(1, Math.ceil(pagination.totalItems / pageSize));
+          if (targetPage > actualTotalPages) {
+            setPage(actualTotalPages);
+            return load(actualTotalPages);
+          }
+        }
+        setPage(targetPage);
+      } catch (err) {
+        console.error('Failed to load parking logs (paginated)', err);
+        if (mounted) {
+          setRows([]);
+          setPageMeta({ totalItems: 0, pageSize, currentPage: 1, totalPages: 1 });
+          setPage(1);
+        }
+      }
     };
-    load();
-    const handler = () => load();
-    window.addEventListener('parking-change', handler);
+    load(1);
+    const onParking = () => load(1);
+    const onDistrict = () => load(1);
+    window.addEventListener('parking-change', onParking);
+    window.addEventListener('district-change', onDistrict);
     return () => {
       mounted = false;
-      window.removeEventListener('parking-change', handler);
+      window.removeEventListener('parking-change', onParking);
+      window.removeEventListener('district-change', onDistrict);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Reload when page changes
+  useEffect(() => {
+    let cancelled = false;
+    const reload = async () => {
+      try {
+        const { items, pagination } = await listParkingLogs({ page, limit: pageSize });
+        if (cancelled) return;
+        setRows(Array.isArray(items) ? items : []);
+        if (pagination) setPageMeta(pagination);
+      } catch (err) {
+        if (cancelled) return;
+        console.error('Failed to load parking logs (page change)', err);
+        setRows([]);
+      }
+    };
+    reload();
+    return () => { cancelled = true; };
+  }, [page]);
+
+  // Derived pagination values from server
+  const totalItems = pageMeta.totalItems || 0;
+  const totalPages = pageMeta.totalPages || Math.max(1, Math.ceil((totalItems || 0) / pageSize));
+  const currentPage = pageMeta.currentPage || page;
 
   return (
     <SidebarLayout className="Mainpage_box">
@@ -106,6 +154,17 @@ const InOutPage = () => {
               )}
             </tbody>
           </table>
+          {rows.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button className="all-btn" disabled={currentPage <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>이전</button>
+                <button className="all-btn" disabled={currentPage >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>다음</button>
+              </div>
+              <div style={{ color: '#c9d1d9', fontSize: 12 }}>
+                페이지 {currentPage} / {totalPages} · 총 {totalItems}건
+              </div>
+            </div>
+          )}
           <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px', paddingBottom: '20px' }}>
             <button 
               onClick={() => navigate('/dashboard')}

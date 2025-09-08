@@ -152,11 +152,11 @@ const NotificationPage = () => {
               <table>
                 <thead>
                   <tr>
-                    <th>메시지</th>
-                    <th>유형</th>
-                    <th>시간</th>
-                    <th>형태</th>
-                    <th>작업</th>
+                    <th style={{ width: '50%' }}>메시지</th>
+                    <th style={{ width: '10%' }}>유형</th>
+                    <th style={{ width: '20%' }}>시간</th>
+                    <th style={{ width: '8%' }}>형태</th>
+                    <th style={{ width: '12%' }}>작업</th>
                   </tr>
                 </thead>
                 <tbody>
