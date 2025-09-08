@@ -16,76 +16,67 @@
 
 ---
 
-## 📌 프로젝트 소개
+## 📌 프로젝트 개요
 
 **이음주차**는 장애인 전용 주차구역에서 발생하는 불법 주정차 및 방해 행위를  
-실시간 영상 인식 기술과 AI 기반 분석을 통해 자동으로 탐지하고 계도하는 시스템입니다.
+AI 기반 영상 분석과 실시간 경고 시스템으로 자동 탐지·계도하는 스마트 주차 관리 플랫폼입니다.
+
+- **목표:** 장애인 주차권 보호 및 주차장 관리 효율화  
+- **기간:** 2025.07.01 ~ 2025.08.31  
+- **역할:** 팀 단위 공동 개발 (Front-end, Back-end, AI, DB, 배포)
 
 ---
 
 ## 🚀 주요 서비스
 
-- **주차 현황 모니터링 서비스**  
-  실시간 CCTV 영상 기반 주차 상태 확인
-- **불법 주차 차량 관리 서비스**  
-  AI 기반 불법 주차 차량 탐지 및 기록
-- **데이터 통계 서비스**  
-  주차장 이용 패턴, 점유율, 위반 건수 분석
-- **알림 및 경고 시스템**  
-  위반 발생 시 관리자에게 실시간 알림
+### ✅ 핵심 기능
+- **주차 현황 모니터링**  
+  CCTV 영상 기반 실시간 주차 상태 확인
+- **불법 주차 차량 관리**  
+  AI 탐지 후 차량 번호판 인식 및 기록
+- **데이터 통계**  
+  주차장 점유율, 위반 건수, 이용 패턴 분석
+- **알림/경고 시스템**  
+  위반 발생 시 관리자 웹 대시보드 실시간 알림
 
 ---
 
 ## 🛠️ 기술 스택
 
-**Front-end:** HTML, CSS, React, TailwindCSS  
-**Back-end:** Node.js, Express, WebSocket  
-**AI / Modeling:** YOLOv8, YOLO-Pose, EasyOCR, OpenCV, ResNet, Colab, Python  
-**Database:** MySQL  
-**Deployment:** Elastic Beanstalk, EC2  
+| 분야 | 기술 |
+|------|------|
+| Front-end | HTML, CSS, React, TailwindCSS |
+| Back-end | Node.js, Express, WebSocket |
+| AI / Modeling | YOLOv8, YOLO-Pose, EasyOCR, OpenCV, ResNet, Python |
+| Database | MySQL |
+| Deployment | AWS Elastic Beanstalk, EC2 |
 
 ---
 
-## 📊 프로젝트 개발 내용
+## 🧩 개발 내용
 
 ### AI 모델링
-- YOLOv8 기반 객체 탐지 모델 (자동차, 오토바이, 트럭)  
-- EasyOCR로 번호판 텍스트 추출  
-- Re-ID 모델: ResNet 사용, 특징 벡터 추출 후 동일 차량 인식  
-- AI-hub, YOLO-Pose, 고정 규칙을 통한 자체 데이터 생성  
-- 실제 데이터 수집, 전처리, 라벨링 (휠체어, 목발, 보조기기, 박스)  
-- YOLOv8m 학습 진행
+- YOLOv8 기반 차량 및 보조기기 객체 탐지  
+- EasyOCR로 번호판 문자 추출  
+- ResNet 기반 Re-ID 모델로 동일 차량 추적  
+- 자체 데이터 수집 및 라벨링 (휠체어, 목발, 박스 등)  
+- YOLOv8m 학습 및 모델 검증  
 
 ### Front-end
-- React 기반 주차장 현황, 위반 내역, 경고 알림 실시간 시각화  
-- Node.js 서버에서 MySQL 데이터 Axios로 조회 후 화면 표시  
-- CCTV 이미지 기반 주차 구역 빈자리/주차 차량 표시
+- React + TailwindCSS로 주차 현황·위반 내역 시각화  
+- Axios로 Node.js 서버 데이터 조회  
+- CCTV 이미지 기반 주차 구역 비어 있음 / 주차 차량 표시  
 
 ### Back-end
-- Node.js 기반 RESTful API 서버 개발  
+- Node.js Express 기반 REST API 서버  
 - configs, controllers, services, repositories, routes 모듈화  
-- WebSocket 기반 실시간 웹캠 영상 스트리밍
+- WebSocket으로 실시간 웹캠 영상 스트리밍 지원  
 
 ### 배포
-- Elastic Beanstalk 배포로 자동 스케일링 및 로드 밸런싱  
-- 배포 자동화 및 운영 편의성 확보, 서비스 안정성 강화
+- AWS Elastic Beanstalk를 통한 배포 및 자동 스케일링  
+- 안정적 운영 환경 확보 및 서버 관리 편의성 강화
 
 ---
 
 ## 🏗️ 시스템 아키텍처
-
-
-- 주차장 카메라 영상은 엣지 디바이스에서 분석되어 서버로 전송  
-- 분석 결과는 데이터베이스에 기록  
-- 관리자는 웹페이지에서 실시간 주차 현황과 위반 정보를 확인 가능
-
----
-
-## 📌 배지 예시 (선택적)
-
-![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=white) 
-![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white) 
-![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white) 
-![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
-
 
