@@ -80,3 +80,5 @@ AI 기반 영상 분석과 실시간 경고 시스템으로 자동 탐지·계�
 
 ## 🏗️ 시스템 아키텍처
 
+<img width="8949" height="5742" alt="12가3456 (6)" src="https://github.com/user-attachments/assets/b9a3b5cf-bc8b-41ef-870f-955cad9fad77" />
+
